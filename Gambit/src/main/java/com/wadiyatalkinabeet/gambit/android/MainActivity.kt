@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.ImageProxy
 import com.wadiyatalkinabeet.gambit.android.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -26,9 +27,8 @@ class MainActivity : AppCompatActivity() {
         cameraHelper.start()
     }
 
-    private fun onResult(result: String) {
-        Log.d(TAG, "Result is $result")
-        binding.textResult.text = result
+    private fun onResult(result: ImageProxy) {
+        Log.d(TAG, "Result is kinda here")
     }
 
     override fun onRequestPermissionsResult(

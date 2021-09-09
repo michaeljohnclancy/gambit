@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.Toast
@@ -19,13 +20,13 @@ import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.max
 
-typealias ChessboardListener = (chessBoard: String?) -> Unit
+typealias ChessboardListener = (chessBoard: ImageProxy?) -> Unit
 
 class CameraHelper(
     private val owner: AppCompatActivity,
     private val context: Context,
     private val viewFinder: PreviewView,
-    private val onResult: (result: String) -> Unit
+    private val onResult: (result: ImageProxy) -> Unit
 ){
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
@@ -92,7 +93,7 @@ class CameraHelper(
 
         val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
         val previewView = getPreviewUseCase()
-//        val barcodeRecognizer = getChessBoardAnalyzerUseCase(onResult)
+        val chessboardAnalyzer = getChessBoardAnalyzerUseCase(onResult)
 
         cameraProvider.unbindAll()
 
@@ -101,7 +102,7 @@ class CameraHelper(
                 owner,
                 cameraSelector,
                 previewView,
-//                barcodeRecognizer
+                chessboardAnalyzer
             )
 
             previewView.setSurfaceProvider(viewFinder.surfaceProvider)
@@ -118,7 +119,7 @@ class CameraHelper(
             .build()
     }
 
-    private fun getChessBoardAnalyzerUseCase(onResult: (result: String) -> Unit): ImageAnalysis{
+    private fun getChessBoardAnalyzerUseCase(onResult: (result: ImageProxy) -> Unit): ImageAnalysis{
         val analyzer = ImageAnalysis.Builder()
             .setTargetAspectRatio(aspectRatio())
             .setTargetRotation(viewFinder.display.rotation)
@@ -126,9 +127,10 @@ class CameraHelper(
             .setImageQueueDepth(10)
             .build()
 
-        analyzer.setAnalyzer(cameraExecutor, ChessboardScanner { string ->
-            string?.let { url ->
-                onResult(url)
+        //TODO: What is this let stuff, seems redundant?
+        analyzer.setAnalyzer(cameraExecutor, ChessboardScanner { imageProxy ->
+            imageProxy?.let { image ->
+                onResult(image)
             }
         })
 
@@ -141,12 +143,17 @@ class CameraHelper(
         @SuppressLint("UnsafeOptInUsageError")
         override fun analyze(imageProxy: ImageProxy) {
             val mediaImage = imageProxy.image
-        }
 
+        }
     }
 
     private fun aspectRatio(): Int {
-        with(DisplayMetrics().also { viewFinder.display.getRealMetrics(it) }) {
+        with(DisplayMetrics().also { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            owner.windowManager.currentWindowMetrics
+        } else {
+            viewFinder.display.getRealMetrics(it)
+        }
+        }) {
             val previewRatio = max(widthPixels, heightPixels).toDouble() / widthPixels.coerceAtMost(
                 heightPixels
             )

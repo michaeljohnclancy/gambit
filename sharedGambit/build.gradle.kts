@@ -34,9 +34,6 @@ kotlin {
             dependencies {
                 implementation("com.github.h0tk3y.geometry:geometry:v0.1")
                 implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
-                implementation("org.tensorflow:tensorflow-lite-task-vision:0.1.0")
-                implementation("org.tensorflow:tensorflow-lite-support:0.1.0")
-//                implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
             }
         }
         val commonTest by getting {
@@ -48,6 +45,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(project(":libraries:opencv-android"))
+
 
             }
         }
