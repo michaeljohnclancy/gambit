@@ -1,12 +1,15 @@
 buildscript {
+    val kotlinVersion by extra{"1.5.30"}
+    val gradleVersion by extra{"7.0.2"}
+
     repositories {
         gradlePluginPortal()
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30")
-        classpath("com.android.tools.build:gradle:7.0.2")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("com.android.tools.build:gradle:$gradleVersion")
     }
 }
 
@@ -14,6 +17,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven {url = uri("https://jitpack.io")}
     }
 }
 

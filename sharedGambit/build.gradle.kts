@@ -30,14 +30,27 @@ kotlin {
     }
     
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                implementation("com.github.h0tk3y.geometry:geometry:v0.1")
+                implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
+                implementation("org.tensorflow:tensorflow-lite-task-vision:0.1.0")
+                implementation("org.tensorflow:tensorflow-lite-support:0.1.0")
+//                implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+                implementation(project(":libraries:opencv-android"))
+
+            }
+        }
         val androidTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
@@ -50,10 +63,10 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(31)
+    compileSdk = 31
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
-        minSdkVersion(21)
-        targetSdkVersion(31)
+        minSdk = 21
+        targetSdk = 31
     }
 }
