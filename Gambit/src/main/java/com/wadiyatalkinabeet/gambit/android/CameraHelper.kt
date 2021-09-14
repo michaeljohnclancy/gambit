@@ -15,6 +15,9 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.wadiyatalkinabeet.gambit.android.MainActivity.Companion.TAG
+import com.wadiyatalkinabeet.gambit.runChessboardPositionSearch
+import com.wadiyatalkinabeet.gambit.yuvToRgba
+import org.opencv.android.OpenCVLoader
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
@@ -102,7 +105,7 @@ class CameraHelper(
                 owner,
                 cameraSelector,
                 previewView,
-                chessboardAnalyzer
+//                chessboardAnalyzer
             )
 
             previewView.setSurfaceProvider(viewFinder.surfaceProvider)
@@ -142,8 +145,11 @@ class CameraHelper(
 
         @SuppressLint("UnsafeOptInUsageError")
         override fun analyze(imageProxy: ImageProxy) {
-            val mediaImage = imageProxy.image
-
+            val mat = imageProxy.image?.yuvToRgba()
+            imageProxy.close()
+            mat?.let {
+                val bitmap = runChessboardPositionSearch(it)
+            }
         }
     }
 
@@ -171,6 +177,10 @@ class CameraHelper(
         cameraProvider?.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) ?: false
 
     companion object {
+        init {
+            System.loadLibrary("sharedGambit")
+            OpenCVLoader.initDebug()
+        }
         const val REQUEST_CODE_PERMISSIONS = 42
         val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val RATIO_4_3_VALUE = 4.0 / 3.0
