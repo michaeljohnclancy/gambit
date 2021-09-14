@@ -35,6 +35,7 @@ kotlin {
                 implementation("com.github.h0tk3y.geometry:geometry:v0.1")
                 implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
                 implementation("com.google.android.play:core-ktx:1.8.1")
+                implementation("com.github.haifengl:smile-kotlin:2.6.0")
             }
         }
         val commonTest by getting {
