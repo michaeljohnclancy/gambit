@@ -4,18 +4,13 @@ import org.opencv.android.OpenCVLoader
 import org.opencv.core.*
 import org.opencv.core.Core.BORDER_CONSTANT
 import org.opencv.core.CvType.CV_8UC3
-import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 import ru.ifmo.ctddev.igushkin.cg.geometry.intersectionPoint
-import smile.clustering.hclust
-import smile.math.MathEx.pdist
 import org.opencv.core.Mat
 
-import com.google.android.play.core.internal.bw
 import ru.ifmo.ctddev.igushkin.cg.geometry.distance
-import smile.clustering.linkage.SingleLinkage
 
 class LAPS {
 

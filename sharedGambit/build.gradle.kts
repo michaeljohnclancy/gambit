@@ -35,7 +35,10 @@ kotlin {
                 implementation("com.github.h0tk3y.geometry:geometry:v0.1")
                 implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
                 implementation("com.google.android.play:core-ktx:1.8.1")
-                implementation("com.github.haifengl:smile-kotlin:2.6.0")
+
+                implementation("org.tensorflow:tensorflow-lite-support:0.2.0")
+                implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
+                implementation("org.tensorflow:tensorflow-lite-gpu:2.3.0")
             }
         }
         val commonTest by getting {
@@ -58,19 +61,16 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(project(":libraries:opencv-android"))
-//                implementation(project(mapOf("path" to ":libraries:opencv-android")))
             }
 
         }
         val androidTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-
-//                implementation(project(mapOf("path" to ":libraries:opencv-android")))
             }
 
             tasks.withType<Test> {
-                systemProperty("java.library.path", "src/androidTest/jniLibs/")
+                systemProperty("java.library.path", "src/commonTest/jniLibs/")
                 }
         }
         val iosMain by getting
@@ -91,6 +91,7 @@ android {
             cmake {
                 cppFlags += "-std=c++11 -frtti -fexceptions"
                 arguments += "-DOpenCV_DIR=../libraries/opencv-android/sdk/native/jni"
+                abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
             }
         }
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
@@ -103,5 +104,8 @@ android {
             path = file("src/androidMain/cpp/CMakeLists.txt")
             version = "3.10.2"
         }
+    }
+    buildFeatures {
+        mlModelBinding = true
     }
 }
