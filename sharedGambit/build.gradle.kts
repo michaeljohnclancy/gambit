@@ -45,44 +45,39 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("androidx.test.ext:junit-ktx:1.1.3")
 
-                implementation("androidx.test:runner:1.4.0")
-                implementation("androidx.test:rules:1.4.0")
-                // Optional -- Hamcrest library
-                implementation("org.hamcrest:hamcrest-library:1.3")
-                // Optional -- UI testing with Espresso
-                implementation("androidx.test.espresso:espresso-core:3.4.0")
-                // Optional -- UI testing with UI Automator
-                implementation("androidx.test.uiautomator:uiautomator:2.2.0")
-
+                implementation("androidx.test:core-ktx:1.4.0")
             }
         }
         val androidMain by getting {
             dependencies {
                 implementation(project(":libraries:opencv-android"))
             }
-
         }
+
         val androidTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+
+                implementation("androidx.test:runner:1.4.0")
+                implementation("androidx.test:rules:1.4.0")
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
+
             }
 
             tasks.withType<Test> {
                 systemProperty("java.library.path", "src/commonTest/jniLibs/")
+                useJUnitPlatform()
                 }
         }
         val iosMain by getting
         val iosTest by getting
     }
-
 }
 
 android {
     compileSdk = 31
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].jniLibs.srcDir("src/androidMain/jniLibs")
 
     defaultConfig {
         minSdk = 21
@@ -94,10 +89,13 @@ android {
                 abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
             }
         }
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
     testOptions {
+        //Tmp as log isnt mocked, mock log!
         unitTests.isReturnDefaultValues = true
+        unitTests.isIncludeAndroidResources = true
     }
     externalNativeBuild {
         cmake {
@@ -107,5 +105,9 @@ android {
     }
     buildFeatures {
         mlModelBinding = true
+    }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
     }
 }

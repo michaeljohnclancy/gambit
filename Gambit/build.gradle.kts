@@ -23,10 +23,11 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:1.0.0-alpha28")
 
-    //TODO: Try move opencv code and tensorflow code out of this area and into the shared modules.
-
     implementation(project(":libraries:opencv-android"))
 
+    testImplementation("androidx.test:runner:1.4.0")
+    testImplementation("androidx.test:rules:1.4.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
 }
 
 android {
@@ -37,20 +38,23 @@ android {
         targetSdk = 31
         versionCode = 1
         versionName = "1.0"
-        testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {
                 cppFlags += "-std=c++11 -frtti -fexceptions"
                 arguments += "-DOpenCV_DIR=../libraries/opencv-android/sdk/native/jni"
+                abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
             }
         }
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
         }
     }
+
     compileOptions {
         sourceCompatibility(JavaVersion.VERSION_1_8)
         targetCompatibility(JavaVersion.VERSION_1_8)
