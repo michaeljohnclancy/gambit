@@ -3,21 +3,48 @@ package com.wadiyatalkinabeet.gambit
 import android.graphics.ImageFormat
 import android.media.Image
 import org.opencv.core.*
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 import ru.ifmo.ctddev.igushkin.cg.geometry.distance
 import ru.ifmo.ctddev.igushkin.cg.geometry.distanceToLine
+import kotlin.math.max
+
+fun Mat.getSubImageAround(point: Point, size: Int): Mat {
+    val lx1 = max(0, (point.x-size-1).toInt())
+    val ly1 = max(0, (point.y-size).toInt())
+    val lx2 = max(0, (point.x+size).toInt())
+    val ly2 = max(0, (point.y+size+1).toInt())
+    val subMat = submat(Range(ly1, ly2), Range(lx1, lx2))
+    return subMat
+
+}
+
+fun Mat.ravel(): DoubleArray{
+    val reshapedMat: Mat = this.reshape(1,1)
+    val flattenedArray = DoubleArray(reshapedMat.width())
+    for (i in flattenedArray.indices) {
+        flattenedArray[i] = reshapedMat[0, i][0]
+    }
+    return flattenedArray
+}
 
 fun Mat.median(): Double{
-    val reshapedMat: Mat = this.reshape(1,1)
-    val pixelArray = DoubleArray(reshapedMat.width())
-    for (i in pixelArray.indices) {
-        pixelArray[i] = reshapedMat[0, i][0]
-    }
+    var flattenedArray = ravel()
+    flattenedArray.sort()
+    return median(flattenedArray)
+}
 
-    pixelArray.sort()
-    return median(pixelArray)
+fun IntRange.toIntArray(): IntArray {
+    if (last < first)
+        return IntArray(0)
+
+    val result = IntArray(last - first + 1)
+    var index = 0
+    for (element in this)
+        result[index++] = element
+    return result
 }
 
 fun median(m: DoubleArray): Double {
@@ -30,7 +57,7 @@ fun median(m: DoubleArray): Double {
 }
 
 fun Mat.applyPoints(
-    pointList: ArrayList<Point>,
+    pointList: List<Point>,
     color: Scalar = Scalar(0.0,0.0,255.0),
     size: Int = 10
 ){

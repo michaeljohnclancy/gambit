@@ -1,22 +1,113 @@
 package com.wadiyatalkinabeet.gambit
 
-import android.R.attr
-import android.media.Image
-import org.opencv.core.Core
-import org.opencv.core.Mat
-import org.opencv.core.MatOfInt
-
-import org.opencv.imgproc.Imgproc
-
-import org.opencv.core.MatOfFloat
-import android.R.attr.src
 import org.opencv.android.OpenCVLoader
-import java.util.*
-import kotlin.collections.ArrayList
+import org.opencv.core.*
+import org.opencv.core.Core.BORDER_CONSTANT
+import org.opencv.core.CvType.CV_8UC3
+import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgproc.Imgproc
+import ru.ifmo.ctddev.igushkin.cg.geometry.Point
+import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
+import ru.ifmo.ctddev.igushkin.cg.geometry.intersectionPoint
+import smile.clustering.hclust
+import smile.math.MathEx.pdist
+import org.opencv.core.Mat
 
+import com.google.android.play.core.internal.bw
+import ru.ifmo.ctddev.igushkin.cg.geometry.distance
+import smile.clustering.linkage.SingleLinkage
 
-//fun cannyEdgeDetect(mat: Mat): Mat{
-////    mat
-////    Core.meanStdDev()
-//}
+class LAPS {
 
+    init {
+        OpenCVLoader.initDebug()
+    }
+
+    private fun getIntersections(segments: List<Segment>): List<Point> {
+        return IntRange(1, segments.size - 1)
+            .flatMap { i -> segments.indices.map { i - 1 to it } }
+            .mapNotNull { intersectionPoint(segments[it.first], segments[it.second]) }
+            .toList()
+    }
+
+    private fun preprocess(mat: Mat): Mat {
+        Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2GRAY)
+        Imgproc.threshold(mat, mat, 0.0, 255.0, Imgproc.THRESH_OTSU)
+        Imgproc.Canny(mat, mat, 0.0, 255.0)
+        Imgproc.resize(mat, mat, Size(21.0, 21.0), 0.0, 0.0, Imgproc.INTER_CUBIC)
+
+        return mat
+    }
+
+    private fun applyGeometricDetector(mat: Mat): Boolean {
+
+        Imgproc.dilate(mat, mat, Mat(), org.opencv.core.Point(-1.0, 1.0), 1)
+
+        val mask = Mat()
+        Core.copyMakeBorder(
+            mat, mask, 1, 1, 1, 1,
+            BORDER_CONSTANT, Scalar(255.0, 255.0, 255.0)
+        )
+
+        Core.bitwise_not(mask, mask)
+
+        var contours: List<MatOfPoint> = arrayListOf()
+        var hierarchy = Mat()
+
+        Imgproc.findContours(
+            mask, contours, hierarchy,
+            Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE
+        )
+
+        var c = Mat(23, 23, CV_8UC3)
+
+        var count = 0
+        for (contour in contours) {
+            val centre = Point()
+            val radius = FloatArray(1)
+            var contour2F = MatOfPoint2f(*contour.toArray())
+
+            Imgproc.minEnclosingCircle(contour2F, centre, radius)
+
+            var approxCurve = MatOfPoint2f()
+            Imgproc.approxPolyDP(
+                contour2F, approxCurve,
+                0.1 * Imgproc.arcLength(contour2F, true),
+                true
+            )
+
+            if (approxCurve.rows() == 4 && radius[0] < 14.0) {
+                Imgproc.drawContours(c, listOf(contour), 0, Scalar(0.0, 255.0, 0.0), 1)
+                count++
+            } else {
+                Imgproc.drawContours(c, listOf(contour), 0, Scalar(0.0, 0.0, 255.0), 1)
+            }
+        }
+        return (count == 4)
+    }
+
+    private fun applyNeuralDetector(mat: Mat): Boolean {
+        return false
+    }
+
+    private fun cluster(points: List<Point>, maxDistance: Double = 10.0): List<Point> {
+        val pointsArray = points.map { doubleArrayOf(it.x, it.y) }.toTypedArray()
+        val a = FCluster.apply(points.size) {
+                index1, index2 -> distance( points[index1], points[index2] ) <= maxDistance
+        }
+        //TODO Unsafe kinda (but is functional), fix underlying datastructure FCluster
+        return a.map { Point(pointsArray[it?.first()!!][0], pointsArray[it.first()!!][1]) }
+    }
+
+    fun analyze(mat: Mat, segments: List<Segment>, kernelSize: Int = 10): List<Point> {
+        val latticePoints = getIntersections(segments)
+            .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
+            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
+            .map { it.first }
+
+        val tmp = mat.clone()
+        tmp.applyPoints(latticePoints)
+
+        return cluster(latticePoints)
+    }
+}
