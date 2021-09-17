@@ -15,14 +15,14 @@ class SLIDTest {
     @Test
     fun testResized() {
         val testImage = loadChessboardExampleImage()
-        val (resizedImage, newSize, scale) =  resize(testImage)
+        val (resizedImage, newSize, scale) =  CPS.resize(testImage)
         Imgcodecs.imwrite("src/commonTest/res/example_chessboard_images/resized.jpg", resizedImage)
     }
 
     @Test
     fun apply_SLID() {
         val testImage = loadChessboardExampleImage()
-        val (resizedImage, newSize, scale) =  resize(testImage)
+        val (resizedImage, newSize, scale) =  CPS.resize(testImage)
         val pslidLines = SLID().analyze(resizedImage)
 
         resizedImage.applyLines(pslidLines)

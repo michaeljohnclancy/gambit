@@ -30,11 +30,16 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings.optIn("org.mylibrary.OptInAnnotation")
+        }
         val commonMain by getting {
             dependencies {
                 implementation("com.github.h0tk3y.geometry:geometry:v0.1")
                 implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
                 implementation("com.google.android.play:core-ktx:1.8.1")
+
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
                 implementation("org.tensorflow:tensorflow-lite-support:0.2.0")
                 implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
@@ -47,11 +52,26 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
 
                 implementation("androidx.test:core-ktx:1.4.0")
+                implementation("androidx.test.ext:junit-ktx:1.1.3")
+
+                implementation("androidx.test:runner:1.4.0")
+                implementation("androidx.test:rules:1.4.0")
             }
         }
         val androidMain by getting {
             dependencies {
+
+                val cameraxVersion = "1.0.1"
+
                 implementation(project(":libraries:opencv-android"))
+
+                implementation("androidx.camera:camera-core:$cameraxVersion")
+                implementation("androidx.camera:camera-camera2:$cameraxVersion")
+                implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+                implementation("androidx.camera:camera-view:1.0.0-alpha28")
+
+                implementation("com.github.skgmn:cameraxx:0.6.0")
+
             }
         }
 

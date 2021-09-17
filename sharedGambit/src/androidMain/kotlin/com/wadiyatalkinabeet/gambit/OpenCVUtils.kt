@@ -1,7 +1,9 @@
 package com.wadiyatalkinabeet.gambit
 
+import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.media.Image
+import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
@@ -9,6 +11,8 @@ import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 import ru.ifmo.ctddev.igushkin.cg.geometry.distance
 import ru.ifmo.ctddev.igushkin.cg.geometry.distanceToLine
+import java.io.FileOutputStream
+import java.io.IOException
 import kotlin.math.max
 
 fun Mat.getSubImageAround(point: Point, size: Int): Mat {
@@ -18,7 +22,28 @@ fun Mat.getSubImageAround(point: Point, size: Int): Mat {
     val ly2 = max(0, (point.y+size+1).toInt())
     val subMat = submat(Range(ly1, ly2), Range(lx1, lx2))
     return subMat
+}
 
+fun Bitmap.toMat() : Mat {
+    val mat = Mat()
+    Utils.bitmapToMat(this, mat)
+    return mat
+}
+
+fun Mat.toBitmap(config: Bitmap.Config = Bitmap.Config.ARGB_8888): Bitmap {
+    val bitmap = Bitmap.createBitmap(this.cols(), this.rows(), config)
+    Utils.matToBitmap(this, bitmap)
+    return bitmap
+}
+
+fun Bitmap.toDisk(filename: String){
+    try {
+        FileOutputStream(filename).use { out ->
+            this.compress(Bitmap.CompressFormat.PNG, 100, out) // bmp is your Bitmap instance
+        }
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
 }
 
 fun Mat.ravel(): DoubleArray{

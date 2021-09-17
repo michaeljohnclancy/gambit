@@ -7,27 +7,57 @@ plugins {
 dependencies {
     implementation(project(":sharedGambit"))
 
-    val kotlinVersion = "1.5.30"
-    val coreVersion = "1.6.0"
     val cameraxVersion = "1.0.1"
+//    val composeVersion = "1.1.0-alpha04"
+//    val activityComposeVersion = "1.4.0-alpha02"
+//    val lifecycleViewModelComposeVersion = "2.4.0-beta01"
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-    implementation("androidx.core:core-ktx:$coreVersion")
+    val composeVersion = "1.0.2"
+    val activityComposeVersion = "1.3.1"
+    val lifecycleViewModelComposeVersion = "2.4.0-beta01"
 
-    implementation("com.google.android.material:material:1.4.0")
+//    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+//    implementation("androidx.core:core-ktx:$coreVersion")
+//
+//    implementation("com.google.android.material:material:1.4.0")
     implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
+//    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
 
-    implementation("androidx.camera:camera-core:$cameraxVersion")
-    implementation("androidx.camera:camera-camera2:$cameraxVersion")
-    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-    implementation("androidx.camera:camera-view:1.0.0-alpha28")
+    implementation("androidx.compose.ui:ui:$composeVersion")
+    // Tooling support (Previews, etc.)
+    implementation("androidx.compose.ui:ui-tooling:$composeVersion")
+    // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
+    implementation("androidx.compose.foundation:foundation:$composeVersion")
+    // Material Design
+    implementation("androidx.compose.material:material:$composeVersion")
+    // Material design icons
+    implementation("androidx.compose.material:material-icons-core:$composeVersion")
+    implementation("androidx.compose.material:material-icons-extended:$composeVersion")
+    // Integration with observables
+//    implementation("androidx.compose.runtime:runtime-livedata:$composeVersion")
+//    implementation("androidx.compose.runtime:runtime-rxjava2:$composeVersion")
+    // Animations
+    implementation("androidx.compose.animation:animation:$composeVersion")
+    // Integration with activities
+    implementation("androidx.activity:activity-compose:$activityComposeVersion")
+    // Tooling support (Previews, etc.)
+    // Integration with ViewModels
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleViewModelComposeVersion")
+
+    //Integration between Compose and cameraX
+//    implementation("com.github.skgmn:StartActivityX:master-SNAPSHOT")
+
+    implementation("com.github.skgmn:cameraxx-composable:0.6.1")
+    //StartX convenience functions
+    // UI Tests
+    //TODO: Try move opencv code and tensorflow code out of this area and into the shared modules.
 
     implementation(project(":libraries:opencv-android"))
+    implementation(project(":libraries:startactivityx"))
 
-    testImplementation("androidx.test:runner:1.4.0")
-    testImplementation("androidx.test:rules:1.4.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
+    implementation("com.github.h0tk3y.geometry:geometry:v0.1")
+
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVersion")
 }
 
 android {
@@ -38,6 +68,7 @@ android {
         targetSdk = 31
         versionCode = 1
         versionName = "1.0"
+
 
         externalNativeBuild {
             cmake {
@@ -55,15 +86,21 @@ android {
         }
     }
 
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.1.0-alpha04"
+    }
+
     compileOptions {
         sourceCompatibility(JavaVersion.VERSION_1_8)
         targetCompatibility(JavaVersion.VERSION_1_8)
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
-    }
-    buildFeatures {
-        dataBinding = true
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
 
     externalNativeBuild {

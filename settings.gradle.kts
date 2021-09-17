@@ -16,3 +16,5 @@ include(":sharedGambit")
 
 include(":libraries:opencv-android")
 project(":libraries:opencv-android").projectDir = File("libraries/opencv-android/sdk")
+
+include(":libraries:startactivityx")

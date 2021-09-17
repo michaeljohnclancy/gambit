@@ -1,5 +1,6 @@
 package com.wadiyatalkinabeet.gambit
 
+import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.*
 import org.opencv.core.Core.BORDER_CONSTANT
@@ -9,10 +10,14 @@ import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 import ru.ifmo.ctddev.igushkin.cg.geometry.intersectionPoint
 import org.opencv.core.Mat
+import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 import ru.ifmo.ctddev.igushkin.cg.geometry.distance
+import java.nio.ByteBuffer
 
-class LAPS {
+class LAPS (private var model: NeuralLAPS){
+
 
     init {
         OpenCVLoader.initDebug()
@@ -82,6 +87,23 @@ class LAPS {
     }
 
     private fun applyNeuralDetector(mat: Mat): Boolean {
+
+        // Creates inputs for reference.
+        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 21, 21, 1), DataType.FLOAT32)
+
+
+        var byteArray = ByteArray((mat.width() * mat.height() * mat.channels()))
+        mat.get(0, 0, byteArray)
+
+        inputFeature0.loadBuffer(ByteBuffer.wrap(byteArray))
+
+        // Runs model inference and gets result.
+        val outputs = model.process(inputFeature0)
+        val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+
+        // Releases model resources if no longer used.
+        model.close()
+
         return false
     }
 
@@ -95,14 +117,12 @@ class LAPS {
     }
 
     fun analyze(mat: Mat, segments: List<Segment>, kernelSize: Int = 10): List<Point> {
-        val latticePoints = getIntersections(segments)
+        return getIntersections(segments)
             .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
             .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
+//            .filter { applyGeometricDetector(it.second) }
             .map { it.first }
-
-        val tmp = mat.clone()
-        tmp.applyPoints(latticePoints)
-
-        return cluster(latticePoints)
+            .let(::cluster)
     }
+
 }
