@@ -33,8 +33,10 @@ kotlin {
         all {
             languageSettings.optIn("org.mylibrary.OptInAnnotation")
         }
+
         val commonMain by getting {
             dependencies {
+                val geokVersion = "1.1.0"
                 implementation("com.github.h0tk3y.geometry:geometry:v0.1")
                 implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
                 implementation("com.google.android.play:core-ktx:1.8.1")
@@ -64,6 +66,8 @@ kotlin {
                 val cameraxVersion = "1.0.1"
 
                 implementation(project(":libraries:opencv-android"))
+
+                implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-beta01")
 
                 implementation("androidx.camera:camera-core:$cameraxVersion")
                 implementation("androidx.camera:camera-camera2:$cameraxVersion")

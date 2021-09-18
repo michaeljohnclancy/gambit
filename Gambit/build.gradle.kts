@@ -16,12 +16,7 @@ dependencies {
     val activityComposeVersion = "1.3.1"
     val lifecycleViewModelComposeVersion = "2.4.0-beta01"
 
-//    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-//    implementation("androidx.core:core-ktx:$coreVersion")
-//
-//    implementation("com.google.android.material:material:1.4.0")
     implementation("androidx.appcompat:appcompat:1.3.1")
-//    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
 
     implementation("androidx.compose.ui:ui:$composeVersion")
     // Tooling support (Previews, etc.)
@@ -35,24 +30,20 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:$composeVersion")
     // Integration with observables
 //    implementation("androidx.compose.runtime:runtime-livedata:$composeVersion")
-//    implementation("androidx.compose.runtime:runtime-rxjava2:$composeVersion")
     // Animations
     implementation("androidx.compose.animation:animation:$composeVersion")
     // Integration with activities
     implementation("androidx.activity:activity-compose:$activityComposeVersion")
-    // Tooling support (Previews, etc.)
     // Integration with ViewModels
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleViewModelComposeVersion")
-
     //Integration between Compose and cameraX
-//    implementation("com.github.skgmn:StartActivityX:master-SNAPSHOT")
+//    implementation("com.github.skgmn:StartActivityX:1.1.0")
 
     implementation("com.github.skgmn:cameraxx-composable:0.6.1")
     //StartX convenience functions
     // UI Tests
     //TODO: Try move opencv code and tensorflow code out of this area and into the shared modules.
 
-    implementation(project(":libraries:opencv-android"))
     implementation(project(":libraries:startactivityx"))
 
     implementation("com.github.h0tk3y.geometry:geometry:v0.1")

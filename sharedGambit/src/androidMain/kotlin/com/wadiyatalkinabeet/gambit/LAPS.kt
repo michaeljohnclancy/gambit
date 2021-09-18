@@ -118,9 +118,13 @@ class LAPS (private var model: NeuralLAPS){
 
     fun analyze(mat: Mat, segments: List<Segment>, kernelSize: Int = 10): List<Point> {
         return getIntersections(segments)
+            .filter {
+                it.x-kernelSize > 0 && it.x+kernelSize < mat.width()
+                && it.y-kernelSize > 0 && it.y+kernelSize < mat.height()
+            }
             .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
-            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
-//            .filter { applyGeometricDetector(it.second) }
+//            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
+            .filter { applyGeometricDetector(it.second) }
             .map { it.first }
             .let(::cluster)
     }

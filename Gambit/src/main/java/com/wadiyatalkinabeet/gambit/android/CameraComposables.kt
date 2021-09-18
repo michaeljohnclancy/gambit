@@ -12,8 +12,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.colorResource
@@ -38,15 +41,18 @@ fun MainScreen(
     val permissionInitiallyRequested by viewModel
         .permissionsInitiallyRequestedState.collectAsState(initial = false)
 
+    val latticePoints = viewModel.getLatticePoints().collectAsState(initial = listOf())
+
     if (permissionStatus?.granted == true){
         CameraLayer(cameraPreviewViewModel = viewModel)
     }
     if (permissionInitiallyRequested && permissionStatus?.denied == true) {
         PermissionLayer(onRequestCameraPermission)
     }
-//    if (latticePoints.isNotEmpty()){
-//        LatticeOverlayLayer(latticePoints)
-//    }
+
+    latticePoints.value?.let{
+        LatticeOverlayLayer(latticePoints = it)
+    }
 }
 
 @Composable
@@ -54,7 +60,7 @@ private fun CameraLayer(
     cameraPreviewViewModel: CameraPreviewViewModel
 ){
     val preview by remember { mutableStateOf(cameraPreviewViewModel.preview) }
-    val imageAnalysis by cameraPreviewViewModel.imageAnalysisState.collectAsState()
+    val imageAnalysis by remember { mutableStateOf(cameraPreviewViewModel.imageAnalysisUseCase) }
 
     Box(
         modifier = Modifier
@@ -64,27 +70,30 @@ private fun CameraLayer(
         CameraPreview(
             modifier = Modifier.fillMaxSize(),
             preview = preview,
-//            imageAnalysis = imageAnalysis
+            imageAnalysis = imageAnalysis
         )
     }
 }
 
 @ExperimentalAnimationApi
 @Composable
-private fun LatticeOverlayLayer(viewModel: CameraPreviewViewModel) {
-    val latticePoints by viewModel.latticePoints.collectAsState()
+private fun LatticeOverlayLayer(latticePoints: List<Point>) {
 
-    AnimatedVisibility(visible = latticePoints.isNotEmpty()) {
-        val paint = Paint().asFrameworkPaint()
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            paint.apply {
-                isAntiAlias = true
-                textSize = 48f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                color = android.graphics.Color.WHITE
-            }
-            drawIntoCanvas { canvas -> latticePoints.forEach { canvas.nativeCanvas.drawPoint(it.x.toFloat(), it.y.toFloat(), paint) }  }
-        }
+    val paint = Paint().asFrameworkPaint()
+
+    paint.apply {
+        isAntiAlias = true
+        textSize = 48f
+        color = android.graphics.Color.WHITE
+    }
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        drawPoints(
+            points = latticePoints.map { Offset(it.x.toFloat(), it.y.toFloat()) },
+            pointMode = PointMode.Points,
+            color = Color.Red,
+            strokeWidth = 10f
+        )
     }
 }
 

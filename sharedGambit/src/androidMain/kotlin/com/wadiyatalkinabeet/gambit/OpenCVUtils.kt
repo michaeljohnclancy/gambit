@@ -14,14 +14,20 @@ import ru.ifmo.ctddev.igushkin.cg.geometry.distanceToLine
 import java.io.FileOutputStream
 import java.io.IOException
 import kotlin.math.max
+import kotlin.math.min
 
 fun Mat.getSubImageAround(point: Point, size: Int): Mat {
-    val lx1 = max(0, (point.x-size-1).toInt())
-    val ly1 = max(0, (point.y-size).toInt())
-    val lx2 = max(0, (point.x+size).toInt())
-    val ly2 = max(0, (point.y+size+1).toInt())
-    val subMat = submat(Range(ly1, ly2), Range(lx1, lx2))
-    return subMat
+    //TODO The geometry library is returning negative values for the intersections of lines.
+//    val lx1 = max(0, min(width(), (point.x - size - 1).toInt()))
+//    val ly1 = max(0, min(height(), (point.y - size).toInt()))
+//    val lx2 = max(0, min(width(), (point.x + size).toInt()))
+//    val ly2 = max(0, min(height(), (point.y + size + 1).toInt()))
+//    return submat(Range(ly1, ly2), Range(lx1, lx2))
+    val lx0 = (point.x - size - 1).toInt()
+    val lx1 = (point.x + size).toInt()
+    val ly0 = (point.y - size).toInt()
+    val ly1 = (point.y + size + 1).toInt() //TODO Why -1 for x but +1 for y?????
+    return submat(Range(ly0, ly1), Range(lx0, lx1))
 }
 
 fun Bitmap.toMat() : Mat {

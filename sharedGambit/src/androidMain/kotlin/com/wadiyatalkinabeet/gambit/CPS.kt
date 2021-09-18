@@ -14,19 +14,10 @@ import kotlin.math.sqrt
 
 class CPS(private val neuralLAPS: NeuralLAPS) {
 
-    init {
-        OpenCVLoader.initDebug()
-    }
-
     fun runLAPS(mat: Mat): List<Point> {
-        //Resize
         var (tmpMat, newSize, scale) = resize(mat = mat)
-
-        //Run SLID
         val segments: List<Segment> = SLID().analyze(tmpMat)
-        //Then LAPS
-
-        return LAPS(neuralLAPS).analyze(tmpMat, segments = segments)
+        return LAPS(neuralLAPS).analyze(tmpMat, segments = segments).map { Point(it.x, it.y) }
     }
 
     fun runChessboardPositionSearch(mat: Mat): Bitmap {
@@ -45,22 +36,28 @@ class CPS(private val neuralLAPS: NeuralLAPS) {
     }
 
     companion object {
+        init {
+            OpenCVLoader.initDebug()
+        }
+
         fun resize(
             mat: Mat,
             height: Double = 500.0
         ): Triple<Mat, Size, Double> {
 
+            var tmpMat = mat.clone()
+
             val numPixels: Double = height.pow(2.0)
 
-            var w: Double = mat.width().toDouble()
-            var h: Double = mat.height().toDouble()
+            var w: Double = tmpMat.width().toDouble()
+            var h: Double = tmpMat.height().toDouble()
             val scale: Double = sqrt(numPixels / (w * h))
             w *= scale
             h *= scale
             val scaleSize = Size(w, h)
-            Imgproc.resize(mat, mat, scaleSize)
+            Imgproc.resize(tmpMat, tmpMat, scaleSize)
 
-            return Triple(mat, mat.size(), scale)
+            return Triple(tmpMat, tmpMat.size(), scale)
         }
     }
 }
