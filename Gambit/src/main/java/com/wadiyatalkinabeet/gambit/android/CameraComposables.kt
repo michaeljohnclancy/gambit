@@ -1,8 +1,6 @@
 package com.wadiyatalkinabeet.gambit.android
 
-import android.graphics.Point
-import android.graphics.Typeface
-import androidx.compose.animation.AnimatedVisibility
+import android.annotation.SuppressLint
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -13,15 +11,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PointMode
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.skgmn.cameraxx.CameraPreview
@@ -30,6 +23,7 @@ import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import kotlinx.coroutines.flow.Flow
 
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @ExperimentalAnimationApi
 @Composable
 fun MainScreen(
@@ -41,26 +35,21 @@ fun MainScreen(
     val permissionInitiallyRequested by viewModel
         .permissionsInitiallyRequestedState.collectAsState(initial = false)
 
-    val latticePoints = viewModel.getLatticePoints().collectAsState(initial = listOf())
-
     if (permissionStatus?.granted == true){
-        CameraLayer(cameraPreviewViewModel = viewModel)
+        CameraLayer(viewModel = viewModel)
+        LatticeOverlayLayer(viewModel = viewModel)
     }
     if (permissionInitiallyRequested && permissionStatus?.denied == true) {
         PermissionLayer(onRequestCameraPermission)
-    }
-
-    latticePoints.value?.let{
-        LatticeOverlayLayer(latticePoints = it)
     }
 }
 
 @Composable
 private fun CameraLayer(
-    cameraPreviewViewModel: CameraPreviewViewModel
+    viewModel: CameraPreviewViewModel
 ){
-    val preview by remember { mutableStateOf(cameraPreviewViewModel.preview) }
-    val imageAnalysis by remember { mutableStateOf(cameraPreviewViewModel.imageAnalysisUseCase) }
+    val preview by remember { mutableStateOf(viewModel.preview) }
+    val imageAnalysis by viewModel.imageAnalysisUseCaseState.collectAsState()
 
     Box(
         modifier = Modifier
@@ -75,17 +64,12 @@ private fun CameraLayer(
     }
 }
 
-@ExperimentalAnimationApi
 @Composable
-private fun LatticeOverlayLayer(latticePoints: List<Point>) {
-
-    val paint = Paint().asFrameworkPaint()
-
-    paint.apply {
-        isAntiAlias = true
-        textSize = 48f
-        color = android.graphics.Color.WHITE
-    }
+fun LatticeOverlayLayer(
+    viewModel: CameraPreviewViewModel
+) {
+    val latticePoints by viewModel
+        .getLatticePoints().collectAsState(initial = listOf())
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawPoints(

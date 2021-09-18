@@ -124,7 +124,7 @@ class LAPS (private var model: NeuralLAPS){
             }
             .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
 //            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
-            .filter { applyGeometricDetector(it.second) }
+//            .filter { applyGeometricDetector(it.second) }
             .map { it.first }
             .let(::cluster)
     }
