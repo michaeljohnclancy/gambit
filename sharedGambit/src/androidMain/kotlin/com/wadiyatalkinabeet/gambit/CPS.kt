@@ -17,7 +17,7 @@ class CPS(private val neuralLAPS: NeuralLAPS) {
     fun runLAPS(mat: Mat): List<Point> {
         var (tmpMat, newSize, scale) = resize(mat = mat)
         val segments: List<Segment> = SLID().analyze(tmpMat)
-        return LAPS(neuralLAPS).analyze(tmpMat, segments = segments).map { Point(it.x / scale, it.y / scale) }
+        return LAPS(neuralLAPS).analyze(tmpMat, segments = segments).map { Point((tmpMat.height() - it.y) / scale, it.x / scale) }
     }
 
     fun runChessboardPositionSearch(mat: Mat): Bitmap {
@@ -42,19 +42,18 @@ class CPS(private val neuralLAPS: NeuralLAPS) {
 
         fun resize(
             mat: Mat,
-            height: Double = 500.0
+            numPixels: Float = 500f.pow(2f),
         ): Triple<Mat, Size, Double> {
 
             var tmpMat = mat.clone()
-
-            val numPixels: Double = height.pow(2.0)
 
             var w: Double = tmpMat.width().toDouble()
             var h: Double = tmpMat.height().toDouble()
             val scale: Double = sqrt(numPixels / (w * h))
             w *= scale
             h *= scale
-            val scaleSize = Size(w, h)
+            //Swapped on purpose
+            val scaleSize = Size(w,h)
             Imgproc.resize(tmpMat, tmpMat, scaleSize)
 
             return Triple(tmpMat, tmpMat.size(), scale)

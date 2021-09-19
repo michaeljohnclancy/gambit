@@ -8,7 +8,6 @@ import org.opencv.imgproc.Imgproc.*
 import org.opencv.core.Mat
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.*
 
@@ -92,13 +91,12 @@ class SLID() {
         mat: Mat,
         scale: Double = 4.0
     ): List<Segment> {
-        var tmpMat = mat
 
-        var segments = claheParameters.flatMap { params ->
+        val segments = claheParameters.flatMap { params ->
             applyHoughLinesP(
                 mat = applyAutoCanny(
                     mat = applyCLAHE(
-                        mat = tmpMat,
+                        mat = mat,
                         limit = params.first,
                         gridSize = params.second,
                         nIterations = params.third
@@ -111,7 +109,7 @@ class SLID() {
             abs(segments[it].x0 - segments[it].x1) < abs(segments[it].y0 - segments[it].y1)
         }
 
-        var disjointSet = DisjointSet(size = segments.size)
+        val disjointSet = DisjointSet(size = segments.size)
         disjointSet.populateDisjointSet(segments, preGroupIndices1, Segment::isSimilarTo)
         disjointSet.populateDisjointSet(
             segments,

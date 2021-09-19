@@ -1,6 +1,9 @@
 package com.wadiyatalkinabeet.gambit.android
 
 import android.annotation.SuppressLint
+import android.graphics.Matrix
+import android.graphics.Point
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -21,6 +24,7 @@ import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlin.math.sqrt
 
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -59,6 +63,7 @@ private fun CameraLayer(
         CameraPreview(
             modifier = Modifier.fillMaxSize(),
             preview = preview,
+            scaleType = PreviewView.ScaleType.FIT_START,
             imageAnalysis = imageAnalysis
         )
     }
@@ -71,15 +76,22 @@ fun LatticeOverlayLayer(
     val latticePoints by viewModel
         .getLatticePoints().collectAsState(initial = listOf())
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        drawPoints(
-            points = latticePoints.map { Offset(it.x.toFloat(), it.y.toFloat()) },
-            pointMode = PointMode.Points,
-            color = Color.Red,
-            strokeWidth = 10f
-        )
-    }
-}
+    val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
+
+        Canvas(modifier = Modifier.fillMaxSize()
+        ) {
+
+                val scale: Float = size.width / imageAnalysisResolution.height
+
+
+                drawPoints(
+                    points = latticePoints.map { Offset(scale * it.x.toFloat(), scale * it.y.toFloat())},
+                    pointMode = PointMode.Points,
+                    color = Color.Red,
+                    strokeWidth = 10f
+                )
+            }
+        }
 
 @Composable
 private fun PermissionLayer(onRequestCameraPermission: () -> Unit) {

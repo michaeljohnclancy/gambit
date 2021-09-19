@@ -75,6 +75,7 @@ kotlin {
                 implementation("androidx.camera:camera-view:1.0.0-alpha28")
 
                 implementation("com.github.skgmn:cameraxx:0.6.0")
+                implementation("androidx.test:core-ktx:1.4.0")
 
             }
         }
@@ -86,7 +87,7 @@ kotlin {
                 implementation("androidx.test:runner:1.4.0")
                 implementation("androidx.test:rules:1.4.0")
                 implementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
-
+                implementation("org.robolectric:robolectric:4.4")
             }
 
             tasks.withType<Test> {
@@ -127,6 +128,10 @@ android {
             path = file("src/androidMain/cpp/CMakeLists.txt")
             version = "3.10.2"
         }
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 
     buildFeatures {

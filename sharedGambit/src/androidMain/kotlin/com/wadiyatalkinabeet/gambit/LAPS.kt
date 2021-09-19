@@ -52,25 +52,23 @@ class LAPS (private var model: NeuralLAPS){
 
         Core.bitwise_not(mask, mask)
 
-        var contours: List<MatOfPoint> = arrayListOf()
-        var hierarchy = Mat()
+        val contours: List<MatOfPoint> = arrayListOf()
+        val hierarchy = Mat()
 
         Imgproc.findContours(
             mask, contours, hierarchy,
             Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE
         )
 
-        var c = Mat(23, 23, CV_8UC3)
-
         var count = 0
         for (contour in contours) {
             val centre = Point()
             val radius = FloatArray(1)
-            var contour2F = MatOfPoint2f(*contour.toArray())
+            val contour2F = MatOfPoint2f(*contour.toArray())
 
             Imgproc.minEnclosingCircle(contour2F, centre, radius)
 
-            var approxCurve = MatOfPoint2f()
+            val approxCurve = MatOfPoint2f()
             Imgproc.approxPolyDP(
                 contour2F, approxCurve,
                 0.1 * Imgproc.arcLength(contour2F, true),
@@ -78,17 +76,14 @@ class LAPS (private var model: NeuralLAPS){
             )
 
             if (approxCurve.rows() == 4 && radius[0] < 14.0) {
-                Imgproc.drawContours(c, listOf(contour), 0, Scalar(0.0, 255.0, 0.0), 1)
                 count++
-            } else {
-                Imgproc.drawContours(c, listOf(contour), 0, Scalar(0.0, 0.0, 255.0), 1)
             }
         }
         return (count == 4)
     }
 
     private fun applyNeuralDetector(mat: Mat): Boolean {
-        Imgproc.threshold(mat, mat, 127.0, 255.0, Imgproc.THRESH_BINARY)
+        Imgproc.threshold(mat, mat, 127.0, 1.0, Imgproc.THRESH_BINARY)
 
         // Creates inputs for reference.
         val bitmap = mat.toBitmap()
@@ -125,10 +120,11 @@ class LAPS (private var model: NeuralLAPS){
                 it.x-kernelSize > 0 && it.x+kernelSize < mat.width()
                 && it.y-kernelSize > 0 && it.y+kernelSize < mat.height()
             }
-            .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
-            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
+//            .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
+//            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
 //            .filter { applyGeometricDetector(it.second) }
-            .map { it.first }
+//            .filter { applyNeuralDetector(it.second) }
+//            .map { it.first }
             .let(::cluster)
     }
 
