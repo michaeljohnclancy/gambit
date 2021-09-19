@@ -4,7 +4,6 @@ import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.*
 import org.opencv.core.Core.BORDER_CONSTANT
-import org.opencv.core.CvType.CV_8U
 import org.opencv.core.CvType.CV_8UC3
 import org.opencv.imgproc.Imgproc
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
@@ -15,7 +14,7 @@ import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 import ru.ifmo.ctddev.igushkin.cg.geometry.distance
-import java.nio.ByteBuffer
+
 
 class LAPS (private var model: NeuralLAPS){
 
@@ -42,11 +41,12 @@ class LAPS (private var model: NeuralLAPS){
 
     private fun applyGeometricDetector(mat: Mat): Boolean {
 
-        Imgproc.dilate(mat, mat, Mat(), org.opencv.core.Point(-1.0, 1.0), 1)
+        val tmpMat = Mat()
+        Imgproc.dilate(mat, tmpMat, Mat(), org.opencv.core.Point(-1.0, 1.0), 1)
 
         val mask = Mat()
         Core.copyMakeBorder(
-            mat, mask, 1, 1, 1, 1,
+            tmpMat, mask, 1, 1, 1, 1,
             BORDER_CONSTANT, Scalar(255.0, 255.0, 255.0)
         )
 
@@ -59,6 +59,8 @@ class LAPS (private var model: NeuralLAPS){
             mask, contours, hierarchy,
             Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE
         )
+
+        var c = Mat(23, 23, CV_8UC3)
 
         var count = 0
         for (contour in contours) {
@@ -76,26 +78,44 @@ class LAPS (private var model: NeuralLAPS){
             )
 
             if (approxCurve.rows() == 4 && radius[0] < 14.0) {
+                Imgproc.drawContours(c, listOf(contour), 0, Scalar(0.0, 255.0, 0.0), 1)
                 count++
+            } else {
+                Imgproc.drawContours(c, listOf(contour), 0, Scalar(0.0, 0.0, 255.0), 1)
             }
+
         }
         return (count == 4)
     }
 
     private fun applyNeuralDetector(mat: Mat): Boolean {
-        Imgproc.threshold(mat, mat, 127.0, 1.0, Imgproc.THRESH_BINARY)
+        Imgproc.threshold(mat, mat, 127.0, 255.0, Imgproc.THRESH_BINARY)
 
         // Creates inputs for reference.
-        val bitmap = mat.toBitmap()
 
-        val byteBuffer: ByteBuffer = ByteBuffer.allocate(21*21*4)
-        byteBuffer.rewind()
 
-        bitmap.copyPixelsToBuffer(byteBuffer)
+        val arr = FloatArray(mat.rows() * mat.cols() * mat.channels())
+
+        for (i in 0..20){
+            for (j in 0..20){
+                arr[j + i*21] = mat.get(i, j)[0].toFloat() / 255f
+            }
+        }
+
+//        val byteBuffer: ByteBuffer = ByteBuffer.wrap(bytes)
 
         val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 21, 21, 1), DataType.FLOAT32)
+//        val probabilityProcessor = TensorProcessor.Builder().add(
+//            QuantizeOp(
+//                0F,
+//                (1 / 255.0).toFloat()
+//            )
+//        ).build()
 
-        inputFeature0.loadBuffer(byteBuffer)
+//        val quantizedBuffer = probabilityProcessor.process(inputFeature0)
+
+//        quantizedBuffer.loadBuffer(byteBuffer)
+        inputFeature0.loadArray(arr)
 
         // Runs model inference and gets result.
         val outputs = model.process(inputFeature0)
@@ -120,12 +140,29 @@ class LAPS (private var model: NeuralLAPS){
                 it.x-kernelSize > 0 && it.x+kernelSize < mat.width()
                 && it.y-kernelSize > 0 && it.y+kernelSize < mat.height()
             }
-//            .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
-//            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
-//            .filter { applyGeometricDetector(it.second) }
-//            .filter { applyNeuralDetector(it.second) }
-//            .map { it.first }
+            .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
+            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
+            .map { it.first }
             .let(::cluster)
     }
 
+//    private fun convertBitmapToByteBuffer(bp: Bitmap): ByteBuffer? {
+//        val imgData = ByteBuffer.allocateDirect(BYTES * 60 * 60 * 3)
+//        imgData.order(ByteOrder.nativeOrder())
+//        val bitmap = Bitmap.createScaledBitmap(bp, 60, 60, true)
+//        val intValues = IntArray(60 * 60)
+//        bitmap.getPixels(intValues, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+//
+//        // Convert the image to floating point.
+//        var pixel = 0
+//        for (i in 0..59) {
+//            for (j in 0..59) {
+//                val `val` = intValues[pixel++]
+//                imgData.putFloat((`val` shr 16 and 0xFF) / 255f)
+//                imgData.putFloat((`val` shr 8 and 0xFF) / 255f)
+//                imgData.putFloat((`val` and 0xFF) / 255f)
+//            }
+//        }
+//        return imgData
+//    }
 }

@@ -55,18 +55,12 @@ private fun CameraLayer(
     val preview by remember { mutableStateOf(viewModel.preview) }
     val imageAnalysis by viewModel.imageAnalysisUseCaseState.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .background(Color(0xff000000))
-            .fillMaxSize()
-    ) {
-        CameraPreview(
-            modifier = Modifier.fillMaxSize(),
-            preview = preview,
-            scaleType = PreviewView.ScaleType.FIT_START,
-            imageAnalysis = imageAnalysis
-        )
-    }
+    CameraPreview(
+        modifier = Modifier.fillMaxSize(),
+        preview = preview,
+        scaleType = PreviewView.ScaleType.FIT_START,
+        imageAnalysis = imageAnalysis
+    )
 }
 
 @Composable
@@ -82,7 +76,6 @@ fun LatticeOverlayLayer(
         ) {
 
                 val scale: Float = size.width / imageAnalysisResolution.height
-
 
                 drawPoints(
                     points = latticePoints.map { Offset(scale * it.x.toFloat(), scale * it.y.toFloat())},
