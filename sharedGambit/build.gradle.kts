@@ -102,6 +102,7 @@ kotlin {
 android {
     compileSdk = 31
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    sourceSets["main"].mlModels.srcDir("src/androidMain/ml")
 
     defaultConfig {
         minSdk = 21
@@ -127,6 +128,7 @@ android {
             version = "3.10.2"
         }
     }
+
     buildFeatures {
         mlModelBinding = true
     }

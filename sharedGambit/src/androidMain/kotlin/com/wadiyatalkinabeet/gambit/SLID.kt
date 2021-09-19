@@ -92,12 +92,13 @@ class SLID() {
         mat: Mat,
         scale: Double = 4.0
     ): List<Segment> {
+        var tmpMat = mat
 
         var segments = claheParameters.flatMap { params ->
             applyHoughLinesP(
                 mat = applyAutoCanny(
                     mat = applyCLAHE(
-                        mat = mat,
+                        mat = tmpMat,
                         limit = params.first,
                         gridSize = params.second,
                         nIterations = params.third

@@ -22,9 +22,11 @@ class CameraPreviewViewModel(application:Application): AndroidViewModel(applicat
 
     private val chessboardPositionSearch = CPS(neuralLAPS = NeuralLAPS.newInstance(getApplication<Application>()))
 
+    //Close the model in the activity or similar using: neuralLAPS.close()
+
     @SuppressLint("UnsafeOptInUsageError")
     fun getLatticePoints() : Flow<List<Point>> {
-            return _imageAnalysisUseCaseState.value.analyze().map { imageProxy ->
+            return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default).map { imageProxy ->
                 imageProxy.image?.yuvToRgba()?.let {
                     imageProxy.close()
                     chessboardPositionSearch.runLAPS(it)

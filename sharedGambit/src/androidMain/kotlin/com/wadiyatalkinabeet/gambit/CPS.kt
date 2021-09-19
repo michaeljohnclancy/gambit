@@ -17,7 +17,7 @@ class CPS(private val neuralLAPS: NeuralLAPS) {
     fun runLAPS(mat: Mat): List<Point> {
         var (tmpMat, newSize, scale) = resize(mat = mat)
         val segments: List<Segment> = SLID().analyze(tmpMat)
-        return LAPS(neuralLAPS).analyze(tmpMat, segments = segments).map { Point(it.x, it.y) }
+        return LAPS(neuralLAPS).analyze(tmpMat, segments = segments).map { Point(it.x / scale, it.y / scale) }
     }
 
     fun runChessboardPositionSearch(mat: Mat): Bitmap {

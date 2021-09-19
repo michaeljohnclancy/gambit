@@ -4,6 +4,7 @@ import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.*
 import org.opencv.core.Core.BORDER_CONSTANT
+import org.opencv.core.CvType.CV_8U
 import org.opencv.core.CvType.CV_8UC3
 import org.opencv.imgproc.Imgproc
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
@@ -87,24 +88,26 @@ class LAPS (private var model: NeuralLAPS){
     }
 
     private fun applyNeuralDetector(mat: Mat): Boolean {
+        Imgproc.threshold(mat, mat, 127.0, 255.0, Imgproc.THRESH_BINARY)
 
         // Creates inputs for reference.
+        val bitmap = mat.toBitmap()
+
+        val byteBuffer: ByteBuffer = ByteBuffer.allocate(21*21*4)
+        byteBuffer.rewind()
+
+        bitmap.copyPixelsToBuffer(byteBuffer)
+
         val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 21, 21, 1), DataType.FLOAT32)
 
-
-        var byteArray = ByteArray((mat.width() * mat.height() * mat.channels()))
-        mat.get(0, 0, byteArray)
-
-        inputFeature0.loadBuffer(ByteBuffer.wrap(byteArray))
+        inputFeature0.loadBuffer(byteBuffer)
 
         // Runs model inference and gets result.
         val outputs = model.process(inputFeature0)
-        val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+        val outputFeature0 = outputs.probabilityAsTensorBuffer.floatArray
 
         // Releases model resources if no longer used.
-        model.close()
-
-        return false
+        return outputFeature0[0] > outputFeature0[1] && outputFeature0[1] < 0.03 && outputFeature0[0] > 0.975
     }
 
     private fun cluster(points: List<Point>, maxDistance: Double = 10.0): List<Point> {
@@ -123,7 +126,7 @@ class LAPS (private var model: NeuralLAPS){
                 && it.y-kernelSize > 0 && it.y+kernelSize < mat.height()
             }
             .map { Pair(it, preprocess(mat.getSubImageAround(it, size = kernelSize))) }
-//            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
+            .filter { applyGeometricDetector(it.second) || applyNeuralDetector(it.second) }
 //            .filter { applyGeometricDetector(it.second) }
             .map { it.first }
             .let(::cluster)
