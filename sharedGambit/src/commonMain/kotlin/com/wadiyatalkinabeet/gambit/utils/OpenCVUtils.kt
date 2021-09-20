@@ -62,7 +62,7 @@ fun Mat.ravel(): DoubleArray{
 }
 
 fun Mat.median(): Double{
-    var flattenedArray = ravel()
+    val flattenedArray = ravel()
     flattenedArray.sort()
     return median(flattenedArray)
 }
@@ -130,11 +130,11 @@ fun Segment.isSimilarTo(segment2: Segment): Boolean {
     return (length() / ds > maxError).and(segment2.length() / ds > maxError)
 }
 
-fun generate(segment: Segment, nIterations: Int = 10): List<Point> {
-    return IntRange(0, nIterations - 1).map {
+fun Segment.toPoints(nPoints: Int): List<Point> {
+    return IntRange(0, nPoints - 1).map {
         Point(
-            x = segment.x0 - (segment.x1 - segment.x0) * (it * (1 / nIterations)),
-            y = segment.y0 - (segment.y1 - segment.y0) * (it * (1 / nIterations))
+            x = x0 - (x1 - x0) * (it * (1 / nPoints)),
+            y = y0 - (y1 - y0) * (it * (1 / nPoints))
         )
     }
 }
