@@ -1,5 +1,10 @@
-package com.wadiyatalkinabeet.gambit
+package com.wadiyatalkinabeet.gambit.cornerDetection
 
+import com.wadiyatalkinabeet.gambit.generate
+import com.wadiyatalkinabeet.gambit.isSimilarTo
+import com.wadiyatalkinabeet.gambit.median
+import com.wadiyatalkinabeet.gambit.toOpenCV
+import com.wadiyatalkinabeet.gambit.utils.DisjointSet
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.*
 import org.opencv.core.CvType.*
@@ -35,10 +40,10 @@ class SLID() {
         nIterations: Int = 5
     ): Mat {
 
-        var claheMat = Mat()
+        val claheMat = Mat()
         cvtColor(mat, claheMat, COLOR_BGR2GRAY)
 
-        var clahe = createCLAHE(limit, gridSize)
+        val clahe = createCLAHE(limit, gridSize)
         for (i in 0 until nIterations) {
             clahe.apply(claheMat, claheMat)
         }
@@ -68,7 +73,7 @@ class SLID() {
         mat: Mat,
         beta: Double = 2.0
     ): List<Segment> {
-        var lines = Mat()
+        val lines = Mat()
 
         HoughLinesP(
             mat, lines, 1.0, PI / 360.0 * beta,
@@ -119,9 +124,8 @@ class SLID() {
 
         return IntRange(0, segments.size - 1)
             .groupBy { disjointSet.find(it) }.values
-            .map { segmentIndices ->
-                mergeSegments(segmentIndices.map(segments::get), scale)
-            }.toList()
+            .map { segmentIndices -> mergeSegments(segmentIndices.map(segments::get), scale) }
+            .toList()
     }
 
     private fun mergeSegments(segments: List<Segment>, scale: Double): Segment {

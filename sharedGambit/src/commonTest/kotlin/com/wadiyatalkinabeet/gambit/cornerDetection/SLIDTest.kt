@@ -1,13 +1,12 @@
 package com.wadiyatalkinabeet.gambit
 
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import kotlin.test.Test
 import org.opencv.android.OpenCVLoader
 
 import org.opencv.core.Mat
 import org.opencv.imgcodecs.Imgcodecs
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
+import kotlin.test.assertEquals
 
 
 class SLIDTest {

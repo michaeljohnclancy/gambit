@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit
+package com.wadiyatalkinabeet.gambit.utils
 
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.distance

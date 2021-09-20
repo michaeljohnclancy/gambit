@@ -1,6 +1,7 @@
-package com.wadiyatalkinabeet.gambit
+package com.wadiyatalkinabeet.gambit.cornerDetection
 
 import android.graphics.Bitmap
+import com.wadiyatalkinabeet.gambit.applyPoints
 import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils

@@ -46,6 +46,9 @@ kotlin {
                 implementation("org.tensorflow:tensorflow-lite-support:0.2.0")
                 implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
                 implementation("org.tensorflow:tensorflow-lite-gpu:2.3.0")
+
+                implementation("org.jetbrains.kotlinx:multik-api:0.0.1")
+                implementation("org.jetbrains.kotlinx:multik-default:0.0.1")
             }
         }
         val commonTest by getting {
@@ -53,11 +56,9 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
 
-                implementation("androidx.test:core-ktx:1.4.0")
-                implementation("androidx.test.ext:junit-ktx:1.1.3")
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
 
-                implementation("androidx.test:runner:1.4.0")
-                implementation("androidx.test:rules:1.4.0")
+                implementation("org.robolectric:robolectric:4.4")
             }
         }
         val androidMain by getting {
@@ -84,10 +85,12 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
 
+                implementation("androidx.test:core-ktx:1.4.0")
+                implementation("androidx.test.ext:junit-ktx:1.1.3")
+
                 implementation("androidx.test:runner:1.4.0")
                 implementation("androidx.test:rules:1.4.0")
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
-                implementation("org.robolectric:robolectric:4.4")
+
             }
 
             tasks.withType<Test> {

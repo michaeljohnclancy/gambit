@@ -9,6 +9,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.lifecycle.AndroidViewModel
 import com.github.skgmn.cameraxx.analyze
+import com.wadiyatalkinabeet.gambit.cornerDetection.CPS
 import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*

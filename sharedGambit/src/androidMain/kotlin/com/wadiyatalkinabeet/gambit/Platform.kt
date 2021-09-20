@@ -1,5 +1,13 @@
 package com.wadiyatalkinabeet.gambit
 
-actual class Platform actual constructor() {
-    actual val platform: String = "Android ${android.os.Build.VERSION.SDK_INT}"
+import android.os.Build
+import org.opencv.android.OpenCVLoader
+
+actual fun getNameOfPlatform(): String {
+    return "Android ${Build.VERSION.RELEASE}"
 }
+
+actual fun initOpenCV() {
+    OpenCVLoader.initDebug()
+}
+

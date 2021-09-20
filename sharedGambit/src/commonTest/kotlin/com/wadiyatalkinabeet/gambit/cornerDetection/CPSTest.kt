@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 internal class CPSTest {
 
