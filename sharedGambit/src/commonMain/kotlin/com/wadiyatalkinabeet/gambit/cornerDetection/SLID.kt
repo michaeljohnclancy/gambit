@@ -1,9 +1,6 @@
 package com.wadiyatalkinabeet.gambit.cornerDetection
 
-import com.wadiyatalkinabeet.gambit.generate
-import com.wadiyatalkinabeet.gambit.isSimilarTo
-import com.wadiyatalkinabeet.gambit.median
-import com.wadiyatalkinabeet.gambit.toOpenCV
+import com.wadiyatalkinabeet.gambit.*
 import com.wadiyatalkinabeet.gambit.utils.DisjointSet
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.*
@@ -20,7 +17,7 @@ const val EPSILON = 1e-5
 
 typealias CLAHEParameters = Triple<Double, Size, Int>
 
-class SLID() {
+class SLID {
 
     init {
         OpenCVLoader.initDebug()
@@ -94,10 +91,8 @@ class SLID() {
 
     fun analyze(
         mat: Mat,
-        scale: Double = 4.0
     ): List<Segment> {
-
-        val segments = claheParameters.flatMap { params ->
+        return clusterSegments(claheParameters.flatMap { params ->
             applyHoughLinesP(
                 mat = applyAutoCanny(
                     mat = applyCLAHE(
@@ -108,31 +103,34 @@ class SLID() {
                     )
                 )
             )
-        }
+        }).map { colinearSegments -> mergeSegments(colinearSegments) }
+    }
+
+    private fun clusterSegments(segments: List<Segment>): List<List<Segment>>{
 
         val (preGroupIndices1, preGroupIndices2) = segments.indices.partition {
             abs(segments[it].x0 - segments[it].x1) < abs(segments[it].y0 - segments[it].y1)
         }
 
         val disjointSet = DisjointSet(size = segments.size)
+
         disjointSet.populateDisjointSet(segments, preGroupIndices1, Segment::isSimilarTo)
         disjointSet.populateDisjointSet(
             segments,
             preGroupIndices2,
             Segment::isSimilarTo,
         )
-
-        return IntRange(0, segments.size - 1)
-            .groupBy { disjointSet.find(it) }.values
-            .map { segmentIndices -> mergeSegments(segmentIndices.map(segments::get), scale) }
-            .toList()
+            return IntRange(0, segments.size - 1)
+                .groupBy { disjointSet.find(it) }
+                .values.map { it.map(segments::get) }
     }
 
-    private fun mergeSegments(segments: List<Segment>, scale: Double): Segment {
+
+    private fun mergeSegments(segments: List<Segment>, scale: Double = 4.0): Segment {
 
         return MatOfPoint2f(
             *segments
-                .flatMap(::generate)
+                .flatMap {it.toPoints(nPoints = 10)}
                 .map(Point::toOpenCV)
                 .toTypedArray()
         ).let {
