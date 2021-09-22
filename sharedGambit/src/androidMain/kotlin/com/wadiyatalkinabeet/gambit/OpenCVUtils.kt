@@ -1,8 +1,11 @@
 package com.wadiyatalkinabeet.gambit
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
+import android.graphics.YuvImage
 import android.media.Image
+import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgcodecs.Imgcodecs
@@ -11,6 +14,7 @@ import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 import ru.ifmo.ctddev.igushkin.cg.geometry.distance
 import ru.ifmo.ctddev.igushkin.cg.geometry.distanceToLine
+import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import kotlin.math.max
@@ -30,7 +34,7 @@ fun Mat.getSubImageAround(point: Point, size: Int): Mat {
     return submat(Range(ly0, ly1), Range(lx0, lx1))
 }
 
-fun Bitmap.toMat() : Mat {
+fun Bitmap.toMat(): Mat {
     val mat = Mat()
     Utils.bitmapToMat(this, mat)
     return mat
@@ -42,7 +46,7 @@ fun Mat.toBitmap(config: Bitmap.Config = Bitmap.Config.ARGB_8888): Bitmap {
     return bitmap
 }
 
-fun Bitmap.toDisk(filename: String){
+fun Bitmap.toDisk(filename: String) {
     try {
         FileOutputStream(filename).use { out ->
             this.compress(Bitmap.CompressFormat.PNG, 100, out) // bmp is your Bitmap instance
@@ -52,8 +56,8 @@ fun Bitmap.toDisk(filename: String){
     }
 }
 
-fun Mat.ravel(): DoubleArray{
-    val reshapedMat: Mat = this.reshape(1,1)
+fun Mat.ravel(): DoubleArray {
+    val reshapedMat: Mat = this.reshape(1, 1)
     val flattenedArray = DoubleArray(reshapedMat.width())
     for (i in flattenedArray.indices) {
         flattenedArray[i] = reshapedMat[0, i][0]
@@ -61,7 +65,7 @@ fun Mat.ravel(): DoubleArray{
     return flattenedArray
 }
 
-fun Mat.median(): Double{
+fun Mat.median(): Double {
     val flattenedArray = ravel()
     flattenedArray.sort()
     return median(flattenedArray)
@@ -89,9 +93,9 @@ fun median(m: DoubleArray): Double {
 
 fun Mat.applyPoints(
     pointList: List<Point>,
-    color: Scalar = Scalar(0.0,0.0,255.0),
+    color: Scalar = Scalar(0.0, 0.0, 255.0),
     size: Int = 10
-){
+) {
     pointList.forEach {
         Imgproc.circle(this, it.toOpenCV(), 1, color, size, -1)
     }
@@ -101,18 +105,18 @@ fun Mat.applyLines(
     lineList: List<Segment>,
     color: Scalar = Scalar(0.0, 0.0, 255.0),
     size: Int = 2
-){
+) {
     lineList.forEach {
         Imgproc.line(this, it.from.toOpenCV(), it.to.toOpenCV(), color, size)
     }
 }
 
-fun Point.toOpenCV(): org.opencv.core.Point{
+fun Point.toOpenCV(): org.opencv.core.Point {
     return org.opencv.core.Point(this.x, this.y)
 }
 
 //TODO The length of the line could be cached for performance
-fun Segment.length(): Double{
+fun Segment.length(): Double {
     return distance(this.from, this.to)
 }
 
@@ -147,7 +151,8 @@ fun Image.yuvToRgba(): Mat {
     val rgbaMat = Mat()
 
     if (format == ImageFormat.YUV_420_888
-        && planes.size == 3) {
+        && planes.size == 3
+    ) {
 
         val chromaPixelStride = planes[1].pixelStride
 
@@ -211,4 +216,28 @@ fun Image.yuvToRgba(): Mat {
     }
 
     return rgbaMat
+}
+
+fun Image.toBitmap(): Bitmap {
+    val yBuffer = planes[0].buffer // Y
+    val vuBuffer = planes[2].buffer // VU
+
+    val ySize = yBuffer.remaining()
+    val vuSize = vuBuffer.remaining()
+
+    val nv21 = ByteArray(ySize + vuSize)
+
+    yBuffer.get(nv21, 0, ySize)
+    vuBuffer.get(nv21, ySize, vuSize)
+
+    val yuvImage = YuvImage(nv21, ImageFormat.NV21, this.width, this.height, null)
+    val out = ByteArrayOutputStream()
+    yuvImage.compressToJpeg(android.graphics.Rect(0, 0, yuvImage.width, yuvImage.height), 50, out)
+    val imageBytes = out.toByteArray()
+    return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+}
+
+actual fun loadChessboardExampleImage(): org.opencv.core.Mat {
+    OpenCVLoader.initDebug()
+    return Imgcodecs.imread("src/commonTest/res/example_chessboard_images/1.jpg")
 }

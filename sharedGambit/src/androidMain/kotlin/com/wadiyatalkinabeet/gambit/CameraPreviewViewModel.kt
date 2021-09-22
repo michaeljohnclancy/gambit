@@ -9,18 +9,23 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.lifecycle.AndroidViewModel
 import com.github.skgmn.cameraxx.analyze
-import com.wadiyatalkinabeet.gambit.cornerDetection.CPS
 import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
+import com.wadiyatalkinabeet.gambit.cornerDetection.v1.CornerDetectorV1
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import org.opencv.android.OpenCVLoader
 
-class CameraPreviewViewModel(application:Application): AndroidViewModel(application) {
+class CameraPreviewViewModel(application: Application) : AndroidViewModel(application) {
+
+    init {
+        OpenCVLoader.initDebug()
+    }
 
     private var _imageAnalysisUseCaseState: MutableStateFlow<ImageAnalysis> =
         MutableStateFlow(newImageAnalysisUseCase())
     val imageAnalysisUseCaseState: StateFlow<ImageAnalysis> = _imageAnalysisUseCaseState
 
-    private var _imageAnalysisResolution = MutableStateFlow(Size(640,480))
+    private var _imageAnalysisResolution = MutableStateFlow(Size(640, 480))
     val imageAnalysisResolution = _imageAnalysisResolution
 
     val preview = Preview.Builder()
@@ -29,18 +34,19 @@ class CameraPreviewViewModel(application:Application): AndroidViewModel(applicat
 
     val permissionsInitiallyRequestedState = MutableStateFlow(false)
 
-    private val chessboardPositionSearch =
-        CPS(neuralLAPS = NeuralLAPS.newInstance(getApplication<Application>()))
+    private val neuralLAPS: NeuralLAPS = NeuralLAPS.newInstance(getApplication<Application>())
+
+    private val cornerDetector: CornerDetector = CornerDetectorV1(neuralLAPS = neuralLAPS)
 
     //Close the model in the activity or similar using: neuralLAPS.close()
 
     @SuppressLint("UnsafeOptInUsageError")
-    fun getLatticePoints(): Flow<List<Point>> {
+    fun getLatticePoints(): Flow<List<android.graphics.Point>> {
         return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
             .map { imageProxy ->
                 imageProxy.image?.yuvToRgba()?.let {
                     imageProxy.close()
-                    chessboardPositionSearch.runLAPS(it)
+                    cornerDetector.getLatticePoints(it)
                         .map { point -> Point(point.x.toInt(), point.y.toInt()) }
                 }
             }.filterNotNull().flowOn(Dispatchers.IO)

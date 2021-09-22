@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 
-import org.junit.Test
+import kotlin.test.Test
 
-internal class CPSTest {
+internal class CPSV1Test {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
@@ -15,9 +15,9 @@ internal class CPSTest {
         val testImage = loadChessboardExampleImage()
         val model = NeuralLAPS.newInstance(context)
 
-        val bitmap = CPS(model).runChessboardPositionSearch(testImage)
+        val bitmap = (testImage)
 
-        bitmap.toDisk("src/commonTest/res/cps/cpstest.png")
+//        bitmap.toDisk("src/commonTest/res/cps/cpstest.png")
 
     }
 

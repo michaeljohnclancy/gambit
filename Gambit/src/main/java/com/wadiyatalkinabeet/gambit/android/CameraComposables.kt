@@ -1,8 +1,6 @@
 package com.wadiyatalkinabeet.gambit.android
 
 import android.annotation.SuppressLint
-import android.graphics.Matrix
-import android.graphics.Point
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Canvas
@@ -24,7 +22,6 @@ import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlin.math.sqrt
 
 
 @SuppressLint("CoroutineCreationDuringComposition")

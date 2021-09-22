@@ -1,7 +1,7 @@
 package com.wadiyatalkinabeet.gambit.utils
 
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
-import ru.ifmo.ctddev.igushkin.cg.geometry.distance
+
 
 fun fcluster(points: List<Point>, maxDist: Double): List<Point> {
 

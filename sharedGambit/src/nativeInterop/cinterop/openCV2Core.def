@@ -1,0 +1,4 @@
+package = openCV2Core
+headers = opencv2/core/core_c.h opencv2/core/types_c.h
+headerFilter = opencv2/core/*
+linkerOpts.linux = -L/usr/lib -lopencv_core

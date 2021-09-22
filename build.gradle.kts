@@ -19,6 +19,7 @@ allprojects {
         mavenCentral()
         maven("https://jitpack.io")
     }
+
 }
 
 tasks.register("clean", Delete::class) {

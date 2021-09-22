@@ -1,0 +1,4 @@
+package = openCV2Imgproc
+headers = opencv2/imgproc/imgproc_c.h opencv2/imgproc/types_c.h
+headerFilter = opencv2/imgproc/*
+linkerOpts.linux = -L/usr/lib -lopencv_imgproc

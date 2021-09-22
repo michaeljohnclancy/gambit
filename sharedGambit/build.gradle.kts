@@ -17,7 +17,7 @@ kotlin {
         else -> ::iosX64
     }
 
-    iosTarget("ios") {}
+//    iosTarget("ios") {}
 
     cocoapods {
         summary = "Gambit shared library"
@@ -98,8 +98,8 @@ kotlin {
                 useJUnitPlatform()
                 }
         }
-        val iosMain by getting
-        val iosTest by getting
+//        val iosMain by getting
+//        val iosTest by getting
     }
 }
 

@@ -42,7 +42,7 @@ dependencies {
     implementation("com.github.skgmn:cameraxx-composable:0.6.1")
     //StartX convenience functions
     // UI Tests
-    //TODO: Try move opencv code and tensorflow code out of this area and into the shared modules.
+    //TODO: Try move opencv2 code and tensorflow code out of this area and into the shared modules.
 
     implementation(project(":libraries:startactivityx"))
 
@@ -61,13 +61,13 @@ android {
         versionName = "1.0"
 
 
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++11 -frtti -fexceptions"
-                arguments += "-DOpenCV_DIR=../libraries/opencv-android/sdk/native/jni"
-                abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
-            }
-        }
+//        externalNativeBuild {
+//            cmake {
+//                cppFlags += "-std=nativeInterop++11 -frtti -fexceptions"
+//                arguments += "-DOpenCV_DIR=../libraries/opencv2-android/sdk/native/jni"
+//                abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
+//            }
+//        }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -94,10 +94,10 @@ android {
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.10.2"
-        }
-    }
+//    externalNativeBuild {
+//        cmake {
+//            path = file("src/main/cpp/CMakeLists.txt")
+//            version = "3.10.2"
+//        }
+//    }
 }
