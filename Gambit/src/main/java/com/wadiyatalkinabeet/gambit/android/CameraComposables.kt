@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -21,7 +22,9 @@ import androidx.compose.ui.unit.sp
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
+import com.wadiyatalkinabeet.gambit.times
 import kotlinx.coroutines.flow.Flow
+import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -64,8 +67,10 @@ private fun CameraLayer(
 fun LatticeOverlayLayer(
     viewModel: CameraPreviewViewModel
 ) {
-    val latticePoints by viewModel
-        .getLatticePoints().collectAsState(initial = listOf())
+//    val latticePoints by viewModel
+//        .getLatticePoints().collectAsState(initial = listOf())
+    val latticeLines by viewModel
+        .getLatticeLines().collectAsState(initial = Pair(listOf(), listOf()))
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
@@ -74,14 +79,43 @@ fun LatticeOverlayLayer(
 
                 val scale: Float = size.width / imageAnalysisResolution.height
 
-                drawPoints(
-                    points = latticePoints.map { Offset(scale * it.x.toFloat(), scale * it.y.toFloat())},
-                    pointMode = PointMode.Points,
+//                drawPoints(
+//                    points = latticePoints.map { Offset(scale * it.x.toFloat(), scale * it.y.toFloat())},
+//                    pointMode = PointMode.Points,
+//                    color = Color.Red,
+//                    strokeWidth = 10f
+//                )
+            if (latticeLines != null) {
+                drawSegments(
+                    g = this,
+                    segments = latticeLines!!.first.map {
+                        it * scale
+                    },
                     color = Color.Red,
-                    strokeWidth = 10f
+                    strokeWidth = 5f
+                )
+                drawSegments(
+                    g = this,
+                    segments = latticeLines!!.second.map {
+                        it * scale
+                    },
+                    color = Color.Green,
+                    strokeWidth = 5f
                 )
             }
+            }
         }
+
+fun drawSegments(g: DrawScope, segments: List<Segment>, color: Color, strokeWidth: Float) {
+    for (seg in segments) {
+        g.drawLine(
+            color,
+            start = Offset(seg.x0.toFloat(), seg.y0.toFloat()),
+            end = Offset(seg.x1.toFloat(), seg.y1.toFloat()),
+            strokeWidth=strokeWidth,
+        )
+    }
+}
 
 @Composable
 private fun PermissionLayer(onRequestCameraPermission: () -> Unit) {

@@ -17,8 +17,7 @@ import ru.ifmo.ctddev.igushkin.cg.geometry.distanceToLine
 import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 fun Mat.getSubImageAround(point: Point, size: Int): Mat {
     //TODO The geometry library is returning negative values for the intersections of lines.
@@ -145,6 +144,30 @@ fun Segment.toPoints(nPoints: Int): List<Point> {
 
 fun Segment.distanceTo(point: Point): Double {
     return distanceToLine(point, this)
+}
+
+typealias Vector = Point
+
+fun dotProduct(a: Vector, b: Vector): Double {
+    return a.x * b.x + a.y * b.y
+}
+
+fun Vector.length(): Double {
+    return sqrt(this.x.pow(2) + this.y.pow(2))
+}
+
+operator fun Vector.minus(v: Vector): Vector {
+    return Vector(this.x - v.x, this.y - v.y)
+}
+
+fun Segment.angleTo(line: Segment): Double {
+    val v1 = this.to - this.from
+    val v2 = line.to - line.from
+    return acos((dotProduct(v1, v2)) / (v1.length() * v2.length()) )
+}
+
+operator fun Segment.times(scale: Float): Segment {
+    return Segment(this.x0*scale, this.y0*scale, this.x1*scale, this.y1*scale)
 }
 
 fun Image.yuvToRgba(): Mat {

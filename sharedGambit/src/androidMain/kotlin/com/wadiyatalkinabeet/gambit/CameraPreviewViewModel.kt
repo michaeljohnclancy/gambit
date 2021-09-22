@@ -11,9 +11,11 @@ import androidx.lifecycle.AndroidViewModel
 import com.github.skgmn.cameraxx.analyze
 import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 import com.wadiyatalkinabeet.gambit.cornerDetection.v1.CornerDetectorV1
+import com.wadiyatalkinabeet.gambit.cornerdetection.findLines
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import org.opencv.android.OpenCVLoader
+import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 
 class CameraPreviewViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -40,14 +42,26 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 
     //Close the model in the activity or similar using: neuralLAPS.close()
 
+//    @SuppressLint("UnsafeOptInUsageError")
+//    fun getLatticePoints(): Flow<List<android.graphics.Point>> {
+//        return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
+//            .map { imageProxy ->
+//                imageProxy.image?.yuvToRgba()?.let {
+//                    imageProxy.close()
+//                    cornerDetector.getLatticePoints(it)
+//                        .map { point -> Point(point.x.toInt(), point.y.toInt()) }
+//                }
+//            }.filterNotNull().flowOn(Dispatchers.IO)
+//    }
+
     @SuppressLint("UnsafeOptInUsageError")
-    fun getLatticePoints(): Flow<List<android.graphics.Point>> {
+    fun getLatticeLines(): Flow<Pair<List<Segment>, List<Segment>>?> {
         return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
             .map { imageProxy ->
                 imageProxy.image?.yuvToRgba()?.let {
                     imageProxy.close()
-                    cornerDetector.getLatticePoints(it)
-                        .map { point -> Point(point.x.toInt(), point.y.toInt()) }
+    //                    chessboardPositionSearch.runSLID(it)
+                    findLines(it)
                 }
             }.filterNotNull().flowOn(Dispatchers.IO)
     }
