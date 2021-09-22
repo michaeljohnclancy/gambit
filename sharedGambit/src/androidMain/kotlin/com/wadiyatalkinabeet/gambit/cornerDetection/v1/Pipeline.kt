@@ -1,12 +1,6 @@
 package com.wadiyatalkinabeet.gambit.cornerDetection.v1
 
 import com.wadiyatalkinabeet.gambit.CornerDetector
-import com.wadiyatalkinabeet.gambit.cornerDetection.applyAutoCanny
-import com.wadiyatalkinabeet.gambit.cornerDetection.applyCLAHE
-import com.wadiyatalkinabeet.gambit.cornerDetection.applyHoughLinesP
-import com.wadiyatalkinabeet.gambit.cornerDetection.claheParameters
-import com.wadiyatalkinabeet.gambit.cornerDetection.clusterSegments
-import com.wadiyatalkinabeet.gambit.cornerDetection.mergeSegments
 import com.wadiyatalkinabeet.gambit.getSubImageAround
 import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 import org.opencv.core.Mat

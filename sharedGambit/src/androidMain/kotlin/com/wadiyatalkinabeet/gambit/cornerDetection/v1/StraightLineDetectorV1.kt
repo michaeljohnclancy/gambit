@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit.cornerDetection
+package com.wadiyatalkinabeet.gambit.cornerDetection.v1
 
 import com.wadiyatalkinabeet.gambit.*
 import com.wadiyatalkinabeet.gambit.utils.DisjointSet
@@ -7,10 +7,13 @@ import org.opencv.core.CvType.*
 import org.opencv.imgproc.Imgproc.*
 
 import org.opencv.core.Mat
+import org.opencv.core.MatOfPoint2f
+import org.opencv.core.Size
 import ru.ifmo.ctddev.igushkin.cg.geometry.Point
 import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 import kotlin.collections.ArrayList
 import kotlin.math.*
+import org.opencv.imgproc.Imgproc.cvtColor
 
 const val EPSILON = 1e-5
 
