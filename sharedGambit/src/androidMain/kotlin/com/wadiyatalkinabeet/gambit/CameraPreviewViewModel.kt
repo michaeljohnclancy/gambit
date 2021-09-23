@@ -8,9 +8,11 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.lifecycle.AndroidViewModel
 import com.github.skgmn.cameraxx.analyze
+import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.InvalidFrameException
+import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.findCorners
 import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.findLines
 import com.wadiyatalkinabeet.gambit.cv.toMat
-import com.wadiyatalkinabeet.gambit.math.geometry.Segment
+import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import org.opencv.android.OpenCVLoader
@@ -53,12 +55,16 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 //    }
 
     @SuppressLint("UnsafeOptInUsageError")
-    fun getLatticeLines(): Flow<Pair<List<Segment>, List<Segment>>> {
+    fun getLatticeLines(): Flow<Pair<List<Line>, List<Line>>> {
         return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
             .map { imageProxy ->
                 imageProxy.image?.toMat()?.let {
                     imageProxy.close()
-                    findLines(it)
+                    try {
+                        findCorners(it)
+                    } catch (_: InvalidFrameException) {
+                        null
+                    }
                 }
             }.filterNotNull().flowOn(Dispatchers.IO)
     }

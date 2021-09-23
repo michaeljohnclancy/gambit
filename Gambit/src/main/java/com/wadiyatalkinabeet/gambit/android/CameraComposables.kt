@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
-import com.wadiyatalkinabeet.gambit.math.geometry.Segment
+import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
+import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.flow.Flow
 
 
@@ -78,13 +79,17 @@ fun LatticeOverlayLayer(
             latticeLines.let {
                 drawSegments(
                     g = this,
-                    segments = it.first.map { line -> line * scale } ,
+                    segments = it.first.map { line ->
+                        line.toSegment() * scale
+                    },
                     color = Color.Red,
                     strokeWidth = 5f
                 )
                 drawSegments(
                     g = this,
-                    segments = it.second.map { line -> line * scale },
+                    segments = it.second.map { line ->
+                        line.toSegment() * scale
+                    },
                     color = Color.Green,
                     strokeWidth = 5f
                 )

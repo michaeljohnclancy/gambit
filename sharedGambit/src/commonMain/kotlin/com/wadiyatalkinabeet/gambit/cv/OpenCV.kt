@@ -1,7 +1,8 @@
 package com.wadiyatalkinabeet.gambit.cv
 
-import com.wadiyatalkinabeet.gambit.math.geometry.Segment
+import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.statistics.median
+import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
 
@@ -81,6 +82,19 @@ fun Mat.ravel(): DoubleArray {
         flattenedArray[i] = reshapedMat[0, i]!![0]
     }
     return flattenedArray
+}
+
+//fun linesFromHoughMat
+fun Line.Companion.fromHoughLines(src: Mat): List<Line> {
+    return (0 until src.rows())
+        .map{ src.get(it, 0) }
+        .map{
+            if (it[0] > 0) {
+                Line(it[0], it[1])
+            } else {
+                Line(-it[0], it[1] - PI)
+            }
+        }
 }
 
 fun processImage(matIn: Mat): Mat {

@@ -20,6 +20,14 @@ class Point(val x: Double, val y: Double): Comparable<Point> {
         return Point(this.x - point2.x, this.y - point2.y)
     }
 
+    operator fun plus(point2: Point): Point {
+        return Point(this.x + point2.x, this.y + point2.y)
+    }
+
+    operator fun times(scale: Double): Point {
+        return Point(scale * x, scale * y)
+    }
+
     fun dot(point2: Point): Double {
         return this.x * point2.x + this.y * point2.y
     }
@@ -69,14 +77,19 @@ data class Segment(val p0: Point, val p1: Point) {
     fun length() = p0.euclideanDistanceTo(p1)
 
     operator fun times(scale: Double): Segment {
-        return Segment(this.p0.x * scale, this.p0.y * scale, this.p1.x * scale, this.p1.y * scale)
+        return Segment(
+            this.p0.x * scale,
+            this.p0.y * scale,
+            this.p1.x * scale,
+            this.p1.y * scale
+        )
     }
     operator fun times(scale: Float): Segment {
         return Segment(
-            (this.p0.x * scale),
-            (this.p0.y * scale),
-            (this.p1.x * scale),
-            (this.p1.y * scale)
+            this.p0.x * scale,
+            this.p0.y * scale,
+            this.p1.x * scale,
+            this.p1.y * scale
         )
     }
 
@@ -88,6 +101,8 @@ data class Segment(val p0: Point, val p1: Point) {
 }
 
 data class Line(val rho: Double, val theta: Double) {
+    companion object {}
+
     // Minimum angle between two lines
     fun angleTo(line: Line): Double {
         val delta = abs(this.theta - line.theta)
@@ -107,6 +122,15 @@ data class Line(val rho: Double, val theta: Double) {
         } catch (_: ArithmeticException) {
             null
         }
+    }
+
+    fun toSegment(len: Double = 1000.0): Segment {
+        val toLine = Vector(cos(theta), sin(theta)) * rho
+        val normal = Vector(sin(theta), cos(theta))
+        return Segment(
+            toLine - normal * len,
+            toLine + normal * len
+        )
     }
 }
 

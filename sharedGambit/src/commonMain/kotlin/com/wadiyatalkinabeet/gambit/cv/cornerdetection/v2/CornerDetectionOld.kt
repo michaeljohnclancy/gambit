@@ -1,7 +1,7 @@
 package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.cv.*
-import com.wadiyatalkinabeet.gambit.math.geometry.Segment
+import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
 import kotlin.math.*
 

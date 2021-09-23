@@ -1,6 +1,9 @@
 package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.cv.*
+import com.wadiyatalkinabeet.gambit.math.datastructures.Line
+import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
+import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.pow
@@ -24,44 +27,47 @@ fun detectEdges(src: Mat, edges: Mat){
 }
 
 fun detectLines(
-    edges: Mat, lines: Mat,
+    edges: Mat,
     eliminateDiagonalThresholdRads: Double? = null,
-){
+): List<Line> {
     val tmpMat = Mat()
     houghLines(edges, tmpMat, 1.0, PI/360, 100)
-    fixNegativeRhoInHesseNormalForm(tmpMat, tmpMat)
+    val allLines = Line.fromHoughLines(tmpMat)
 
-    fun diagonalFilter(line: DoubleArray) = eliminateDiagonalThresholdRads?.let {
-        (abs(line[1]) < it || abs(line[1] - (PI / 2)) < it )
+    // Looks like this would break diagonal views if enabled
+    fun diagonalFilter(line: Line) = eliminateDiagonalThresholdRads?.let { thresh ->
+        (abs(line.theta) < thresh || abs(line.theta - (PI / 2)) < thresh )
     } ?: true
 
-    (0 until tmpMat.rows())
-        .map {tmpMat.get(it, 0) }
-        .filter(::diagonalFilter)
-        .filter { it[0] < 0 }
-        .forEach {
-            it[0] = -it[0]
-            it[1] = it[1] - PI
-        }
-    }
-
-fun fixNegativeRhoInHesseNormalForm(linesIn: Mat, linesOut: Mat){
+    return allLines.filter(::diagonalFilter)
 }
 
-fun findCorners(src: Mat){
+//TODO This needs to use HCluster, not FCluster
+fun cluster(lines: List<Line>, maxAngle: Double = PI/180): Pair<List<Line>, List<Line>>? {
+    val a = FCluster.apply(lines.size) { index1, index2 ->
+        lines[index1].angleTo(lines[index2]) <= maxAngle
+    }
+    val allClusters =  a.map { cluster ->
+        cluster?.map {
+            it?.let { lines[it] } ?: return null
+        } ?: return null
+    }
+    if (allClusters.size < 2)
+        return null
+
+    return allClusters.sortedBy{-it.size}.take(2).let{Pair(it[0], it[1])}
+}
+
+fun findCorners(src: Mat): Pair<List<Line>, List<Line>> {
     val tmpMat = Mat()
     resize(src, tmpMat)
     cvtColor(tmpMat, tmpMat, COLOR_BGR2GRAY)
     detectEdges(tmpMat, tmpMat)
-    detectLines(tmpMat, tmpMat)
+    val allLines = detectLines(tmpMat)
 
-    if (tmpMat.rows() > 400){
+    if (allLines.size > 400){
         throw InvalidFrameException("Too many lines in image")
     }
 
-
-
-
-
-
+    return cluster(allLines) ?: throw InvalidFrameException("Not enough line clusters found")
 }
