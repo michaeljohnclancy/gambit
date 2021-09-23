@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
+import com.wadiyatalkinabeet.gambit.cv.cvToScreenCoords
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.flow.Flow
@@ -74,13 +75,13 @@ fun LatticeOverlayLayer(
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val scale: Float = size.width / imageAnalysisResolution.height
-
+            val screenSize = Pair(size.width.toInt(), size.height.toInt())
+            val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
             latticeLines.let {
                 drawSegments(
                     g = this,
                     segments = it.first.map { line ->
-                        line.toSegment() * scale
+                        line.toSegment().cvToScreenCoords(screenSize, matSize)
                     },
                     color = Color.Red,
                     strokeWidth = 5f
@@ -88,7 +89,7 @@ fun LatticeOverlayLayer(
                 drawSegments(
                     g = this,
                     segments = it.second.map { line ->
-                        line.toSegment() * scale
+                        line.toSegment().cvToScreenCoords(screenSize, matSize)
                     },
                     color = Color.Green,
                     strokeWidth = 5f

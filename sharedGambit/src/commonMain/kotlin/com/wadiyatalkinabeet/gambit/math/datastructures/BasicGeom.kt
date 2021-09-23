@@ -124,9 +124,10 @@ data class Line(val rho: Double, val theta: Double) {
         }
     }
 
+    // This is only a quick translation for drawing to screen
     fun toSegment(len: Double = 1000.0): Segment {
         val toLine = Vector(cos(theta), sin(theta)) * rho
-        val normal = Vector(sin(theta), cos(theta))
+        val normal = Vector(-sin(theta), cos(theta))
         return Segment(
             toLine - normal * len,
             toLine + normal * len

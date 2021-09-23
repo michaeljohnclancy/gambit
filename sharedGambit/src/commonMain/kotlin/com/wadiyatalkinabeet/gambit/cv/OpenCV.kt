@@ -1,6 +1,8 @@
 package com.wadiyatalkinabeet.gambit.cv
 
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
+import com.wadiyatalkinabeet.gambit.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import com.wadiyatalkinabeet.gambit.math.statistics.median
 import kotlin.math.PI
 import kotlin.math.max
@@ -95,6 +97,18 @@ fun Line.Companion.fromHoughLines(src: Mat): List<Line> {
                 Line(-it[0], it[1] - PI)
             }
         }
+}
+
+fun Point.cvToScreenCoords(screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>): Point {
+    return Point(matSize.second.toDouble() - y, x) *
+            (screenSize.first.toDouble() / matSize.second.toDouble())
+}
+
+fun Segment.cvToScreenCoords(screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>): Segment {
+    return Segment(
+        p0.cvToScreenCoords(screenSize, matSize),
+        p1.cvToScreenCoords(screenSize, matSize)
+    )
 }
 
 fun processImage(matIn: Mat): Mat {
