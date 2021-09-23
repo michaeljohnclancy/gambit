@@ -1,9 +1,6 @@
-package com.wadiyatalkinabeet.gambit.math.geometry
+package com.wadiyatalkinabeet.gambit.math.datastructures
 
-import kotlin.math.abs
-import kotlin.math.acos
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 
 typealias Vector = Point
 
@@ -90,6 +87,28 @@ data class Segment(val p0: Point, val p1: Point) {
     }
 }
 
+data class Line(val rho: Double, val theta: Double) {
+    // Minimum angle between two lines
+    fun angleTo(line: Line): Double {
+        val delta = abs(this.theta - line.theta)
+        return min(delta, PI - delta)
+    }
+
+    fun intersection(line: Line): Point? {
+        val cos0 = cos(this.theta)
+        val cos1 = cos(line.theta)
+        val sin0 = sin(this.theta)
+        val sin1 = sin(line.theta)
+        return try {
+            Point(
+                (sin0 * line.rho - sin1 * this.rho) / (cos1 * sin0 - cos0 * sin1),
+                (cos0 * line.rho - cos1 * this.rho) / (sin1 * cos0 - sin0 * cos1)
+            )
+        } catch (_: ArithmeticException) {
+            null
+        }
+    }
+}
 
 //Move below out of here
 
