@@ -1,8 +1,8 @@
 package com.wadiyatalkinabeet.gambit
 
-import org.opencv.core.Mat
-import ru.ifmo.ctddev.igushkin.cg.geometry.Point
-import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
+import com.wadiyatalkinabeet.gambit.cv.Mat
+import com.wadiyatalkinabeet.gambit.math.geometry.Point
+import com.wadiyatalkinabeet.gambit.math.geometry.Segment
 
 
 internal interface StraightLineDetector {

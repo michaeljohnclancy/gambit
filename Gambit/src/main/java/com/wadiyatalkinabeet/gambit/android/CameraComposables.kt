@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -22,9 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
-import com.wadiyatalkinabeet.gambit.times
+import com.wadiyatalkinabeet.gambit.math.geometry.Segment
 import kotlinx.coroutines.flow.Flow
-import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -74,44 +72,32 @@ fun LatticeOverlayLayer(
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
-        Canvas(modifier = Modifier.fillMaxSize()
-        ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val scale: Float = size.width / imageAnalysisResolution.height
 
-                val scale: Float = size.width / imageAnalysisResolution.height
-
-//                drawPoints(
-//                    points = latticePoints.map { Offset(scale * it.x.toFloat(), scale * it.y.toFloat())},
-//                    pointMode = PointMode.Points,
-//                    color = Color.Red,
-//                    strokeWidth = 10f
-//                )
-            if (latticeLines != null) {
+            latticeLines.let {
                 drawSegments(
                     g = this,
-                    segments = latticeLines!!.first.map {
-                        it * scale
-                    },
+                    segments = it.first.map { line -> line * scale } ,
                     color = Color.Red,
                     strokeWidth = 5f
                 )
                 drawSegments(
                     g = this,
-                    segments = latticeLines!!.second.map {
-                        it * scale
-                    },
+                    segments = it.second.map { line -> line * scale },
                     color = Color.Green,
                     strokeWidth = 5f
                 )
             }
-            }
         }
+}
 
 fun drawSegments(g: DrawScope, segments: List<Segment>, color: Color, strokeWidth: Float) {
     for (seg in segments) {
         g.drawLine(
             color,
-            start = Offset(seg.x0.toFloat(), seg.y0.toFloat()),
-            end = Offset(seg.x1.toFloat(), seg.y1.toFloat()),
+            start = Offset(seg.p0.x.toFloat(), seg.p0.y.toFloat()),
+            end = Offset(seg.p1.x.toFloat(), seg.p1.y.toFloat()),
             strokeWidth=strokeWidth,
         )
     }

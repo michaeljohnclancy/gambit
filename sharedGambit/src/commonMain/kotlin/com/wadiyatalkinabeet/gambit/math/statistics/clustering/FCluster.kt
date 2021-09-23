@@ -1,12 +1,4 @@
-package com.wadiyatalkinabeet.gambit.utils
-
-import ru.ifmo.ctddev.igushkin.cg.geometry.Point
-
-
-fun fcluster(points: List<Point>, maxDist: Double): List<Point> {
-
-    return points
-}
+package com.wadiyatalkinabeet.gambit.math.statistics.clustering
 
 typealias Comparator = (Int, Int) -> Boolean
 

@@ -2,20 +2,18 @@ package com.wadiyatalkinabeet.gambit;
 
 import android.annotation.SuppressLint
 import android.app.Application;
-import android.graphics.Point
 import android.util.Size
 import androidx.camera.core.AspectRatio.RATIO_4_3
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.lifecycle.AndroidViewModel
 import com.github.skgmn.cameraxx.analyze
-import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
-import com.wadiyatalkinabeet.gambit.cornerDetection.v1.CornerDetectorV1
-import com.wadiyatalkinabeet.gambit.cornerdetection.findLines
+import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.findLines
+import com.wadiyatalkinabeet.gambit.cv.toMat
+import com.wadiyatalkinabeet.gambit.math.geometry.Segment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import org.opencv.android.OpenCVLoader
-import ru.ifmo.ctddev.igushkin.cg.geometry.Segment
 
 class CameraPreviewViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -36,9 +34,9 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 
     val permissionsInitiallyRequestedState = MutableStateFlow(false)
 
-    private val neuralLAPS: NeuralLAPS = NeuralLAPS.newInstance(getApplication<Application>())
+//    private val neuralLAPS: NeuralLAPS = NeuralLAPS.newInstance(getApplication<Application>())
 
-    private val cornerDetector: CornerDetector = CornerDetectorV1(neuralLAPS = neuralLAPS)
+//    private val cornerDetector: CornerDetector = CornerDetectorV1(neuralLAPS = neuralLAPS)
 
     //Close the model in the activity or similar using: neuralLAPS.close()
 
@@ -55,12 +53,11 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 //    }
 
     @SuppressLint("UnsafeOptInUsageError")
-    fun getLatticeLines(): Flow<Pair<List<Segment>, List<Segment>>?> {
+    fun getLatticeLines(): Flow<Pair<List<Segment>, List<Segment>>> {
         return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
             .map { imageProxy ->
-                imageProxy.image?.yuvToRgba()?.let {
+                imageProxy.image?.toMat()?.let {
                     imageProxy.close()
-    //                    chessboardPositionSearch.runSLID(it)
                     findLines(it)
                 }
             }.filterNotNull().flowOn(Dispatchers.IO)
@@ -70,22 +67,4 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
         .setTargetAspectRatio(RATIO_4_3)
         .build()
-
-//
-//    private fun transformPoint(point: Point) {
-//
-//        val scaleY = previewHeight / height.toFloat()
-//
-//        // If the front camera lens is being used, reverse the right/left coordinates
-//        val flippedLeft = if (isFrontLens) width - right else left
-//        val flippedRight = if (isFrontLens) width - left else right
-//
-//        // Scale all coordinates to match preview
-//        val scaledLeft = scaleX * flippedLeft
-//        val scaledTop = scaleY * top
-//        val scaledRight = scaleX * flippedRight
-//        val scaledBottom = scaleY * bottom
-//        return RectF(scaledLeft, scaledTop, scaledRight, scaledBottom)
-//    }
-
 }
