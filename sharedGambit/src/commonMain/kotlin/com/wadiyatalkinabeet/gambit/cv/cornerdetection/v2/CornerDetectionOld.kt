@@ -5,19 +5,9 @@ import com.wadiyatalkinabeet.gambit.math.geometry.Segment
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
 import kotlin.math.*
 
-fun resize(
-    img: Mat,
-    out: Mat,
-    numPixels: Float = 500f.pow(2f),
-): Double {
-    val w: Double = img.width().toDouble()
-    val h: Double = img.height().toDouble()
-    val scale: Double = sqrt(numPixels / (w * h))
-    resize(img, out, Size(w * scale, h * scale))
-    return scale
-}
 
-private fun applyHoughLines(
+
+private fun applyHoughLinesP(
     mat: Mat,
     scale: Double = 1.0, // Coordinate scaling
     beta: Double = 2.0
@@ -69,7 +59,7 @@ fun findLines(img: Mat): Pair<List<Segment>, List<Segment>>? {
     val out = Mat()
     val scale = imgPreprocess(img, out)
     autoCanny(out, out)
-    val allLines = applyHoughLines(out, scale)
+    val allLines = applyHoughLinesP(out, scale)
     // Note that which group is 'horizontal' vs 'vertical' is arbitrary here
     val (horizontal, vertical) = cluster(allLines, PI / 16) ?: return null
 

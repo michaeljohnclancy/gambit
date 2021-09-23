@@ -1,15 +1,10 @@
-package com.wadiyatalkinabeet.gambit
-
-import com.wadiyatalkinabeet.gambit.math.geometry.Point
-import com.wadiyatalkinabeet.gambit.math.geometry.Segment
-import com.wadiyatalkinabeet.gambit.math.geometry.isSimilarTo
-import com.wadiyatalkinabeet.gambit.math.geometry.toPoints
+package com.wadiyatalkinabeet.gambit.math.geometry
 
 import kotlin.test.Test
 import kotlin.test.Ignore
 import kotlin.test.assertTrue
 
-internal class OpenCVUtilsTest {
+internal class GeometryDataStructureTest {
 
     @Test
     fun isSimilarTo() {

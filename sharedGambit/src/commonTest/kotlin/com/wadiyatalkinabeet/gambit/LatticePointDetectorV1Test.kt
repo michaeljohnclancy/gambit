@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit.v1
+package com.wadiyatalkinabeet.gambit
 
 //import android.content.Context
 //import androidx.test.core.app.ApplicationProvider

@@ -2,9 +2,16 @@ package com.wadiyatalkinabeet.gambit.cv
 
 import android.graphics.ImageFormat
 import android.media.Image
+import org.opencv.android.OpenCVLoader
 import org.opencv.calib3d.Calib3d
 import org.opencv.core.CvType
+import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgcodecs.Imgcodecs.imread
 import org.opencv.imgproc.Imgproc
+
+actual fun initOpenCV() {
+    OpenCVLoader.initDebug()
+}
 
 actual typealias Mat = org.opencv.core.Mat
 actual typealias MatOfPoint2f = org.opencv.core.MatOfPoint2f
@@ -85,23 +92,23 @@ actual fun resize(
 
 actual fun Mat.reshape(
     cn: Int, rows: Int
-) = reshape(cn, rows)
+): Mat = reshape(cn, rows)
 
 actual operator fun Mat.get(
     row: Int, column: Int,
-) = get(row, column)
+): DoubleArray? = get(row, column)
 
 actual fun Mat.width() = width()
 
 actual fun Mat.height() = height()
 
-actual fun Mat.size() = size()
+actual fun Mat.size(): Size = size()
 
 actual fun loadChessboardExampleImage(): Mat {
-    TODO("Not yet implemented")
+    return imread("src/commonTest/res/example_chessboard_images/1.jpg")
 }
 
-fun Image.toMat(): org.opencv.core.Mat {
+fun Image.toMat(): Mat {
     val rgbaMat = Mat()
 
     if (format == ImageFormat.YUV_420_888

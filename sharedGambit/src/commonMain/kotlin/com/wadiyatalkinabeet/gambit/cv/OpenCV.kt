@@ -5,6 +5,7 @@ import com.wadiyatalkinabeet.gambit.math.statistics.median
 import kotlin.math.max
 import kotlin.math.min
 
+expect fun initOpenCV()
 
 const val COLOR_BGR2GRAY = 6
 
