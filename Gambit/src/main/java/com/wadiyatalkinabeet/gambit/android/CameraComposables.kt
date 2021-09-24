@@ -71,14 +71,14 @@ fun LatticeOverlayLayer(
 //    val latticePoints by viewModel
 //        .getLatticePoints().collectAsState(initial = listOf())
     val latticeLines by viewModel
-        .getLatticeLines().collectAsState(initial = null)
+        .getLatticeLines().collectAsState(initial = Pair(listOf(), listOf()))
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             val screenSize = Pair(size.width.toInt(), size.height.toInt())
             val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
-            latticeLines?.let {
+            latticeLines.let {
                 drawSegments(
                     g = this,
                     segments = it.first.map { line ->
