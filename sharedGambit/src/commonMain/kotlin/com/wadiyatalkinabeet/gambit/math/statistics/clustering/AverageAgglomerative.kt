@@ -1,6 +1,7 @@
 package com.wadiyatalkinabeet.gambit.math.statistics.clustering
 
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
+import ru.ifmo.ctddev.igushkin.cg.geometry.distance
 
 class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
 
@@ -12,33 +13,38 @@ class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
 //
     init {
         lines.indices.forEach { clusters[it] = mutableSetOf(it) }
-        recalculateDistanceMatrix()
+        updateDistanceMatrix()
     }
 
-    fun run(): MutableMap<Int, MutableSet<Int>> {
+    fun run() {
         while (clusters.size > numClusters){
-            distanceMatrix
-            .minByOrNull { it.value }?.key
+            clusters.keys.flatMap { i -> clusters.keys.map { i to it }}
+                .filter { it.first != it.second }
+                .minByOrNull { distanceMatrix[Pair(it.first, it.second)]!! }
             ?.let {
                 clusters[it.second]?.forEach { clusterMemberIdx -> clusters[it.first]?.add(clusterMemberIdx) }
                 clusters.remove(it.second)
-                distanceMatrix.remove(it)
-                //Bit fucked
+
+//                distanceMatrix.remove(it)
+                updateDistanceMatrix(cluster1Index = it.first)
             }
-            recalculateDistanceMatrix()
         }
-        return clusters
     }
 
-    private fun recalculateDistanceMatrix(){
-//        clusters.keys.flatMap { i -> cluster2.map { i to it }
-//        clusters.keys.indices.flatMap { i -> clusters.keys.indices.map { it to i-1 } }
+    private fun updateDistanceMatrix(cluster1Index: Int){
 
-        for (i in clusters.keys.indices){
-            for (j in 0..i){
-                if (i == j) continue
-                distanceMatrix[Pair(clusters.keys.elementAt(i), clusters.keys.elementAt(j))] = averageLinkage(clusters.values.elementAt(i), clusters.values.elementAt(j))
-            }
+        for (idx in clusters.keys) {
+//            distanceMatrix.remove(Pair(idx, cluster2Index))
+//            distanceMatrix.remove(Pair(cluster2Index, idx))
+            if (cluster1Index == idx) continue
+            distanceMatrix[Pair(cluster1Index, idx)] = averageLinkage(
+                cluster1 = clusters.getValue(cluster1Index), cluster2 = clusters.getValue(idx))
+        }
+    }
+
+    private fun updateDistanceMatrix(){
+        for (cluster1Index in clusters.keys){
+            updateDistanceMatrix(cluster1Index)
         } }
 
 //            clusters.flatMap { cluster1 -> clusters.map { cluster2 -> cluster1 to cluster2 }}
