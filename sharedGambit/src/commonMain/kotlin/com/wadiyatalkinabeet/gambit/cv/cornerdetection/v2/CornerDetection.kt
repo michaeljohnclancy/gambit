@@ -97,6 +97,7 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     resize(src, tmpMat)
     cvtColor(tmpMat, tmpMat, COLOR_BGR2GRAY)
     detectEdges(tmpMat, tmpMat)
+//    val allLines = detectLines(tmpMat, eliminateDiagonalThresholdRads = 0.524)
     val allLines = detectLines(tmpMat)
 
     if (allLines.size > 400){
@@ -108,13 +109,10 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val agglomerative = AverageAgglomerative(allLines, numClusters = 2)
     agglomerative.run()
 
-    var (verticals, horizontals) = try {
-        agglomerative.clusters
+    var (verticals, horizontals) = agglomerative.clusters
             .map { cluster -> cluster.value.map { allLines[it] } }
+            .also { if (it.size != 2 || it[0].size < 2 || it[1].size < 2) return null }
             .let{ Pair(it[0], it[1]) }
-    } catch (e: IndexOutOfBoundsException){
-        return null
-    }
 
     verticals = eliminateSimilarLines(verticals, horizontals)
     horizontals = eliminateSimilarLines(horizontals, verticals)

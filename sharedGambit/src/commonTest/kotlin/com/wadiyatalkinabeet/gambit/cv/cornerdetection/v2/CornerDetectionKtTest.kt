@@ -14,7 +14,7 @@ internal class CornerDetectionKtTest{
     @Test
     fun findCornersTest(){
         val src: Mat = loadChessboardExampleImage()
-        findCorners(src)
+        findLines(src)
     }
 
 }

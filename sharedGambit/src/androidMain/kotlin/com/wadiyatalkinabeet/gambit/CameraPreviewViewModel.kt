@@ -9,17 +9,12 @@ import androidx.camera.core.Preview
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.skgmn.cameraxx.analyze
-import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.InvalidFrameException
 import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.findCorners
-import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.findLines
 import com.wadiyatalkinabeet.gambit.cv.toMat
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withContext
 import org.opencv.android.OpenCVLoader
-import kotlin.coroutines.coroutineContext
 
 class CameraPreviewViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -66,7 +61,7 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
                         imageProxy.close()
                         findCorners(it)
                     }
-                }.filterNotNull().flowOn(Dispatchers.IO).buffer()
+                }.filterNotNull().flowOn(Dispatchers.IO)
                 .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), 0)
 
     private fun newImageAnalysisUseCase() = ImageAnalysis.Builder()
