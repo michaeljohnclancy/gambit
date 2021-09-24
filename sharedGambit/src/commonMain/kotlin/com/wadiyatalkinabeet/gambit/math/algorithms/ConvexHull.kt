@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit.math.geometry.algorithms
+package com.wadiyatalkinabeet.gambit.math.algorithms
 
 import com.wadiyatalkinabeet.gambit.math.datastructures.Point
 

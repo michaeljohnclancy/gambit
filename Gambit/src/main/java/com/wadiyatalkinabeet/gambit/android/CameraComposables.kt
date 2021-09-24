@@ -70,9 +70,8 @@ fun LatticeOverlayLayer(
 ) {
 //    val latticePoints by viewModel
 //        .getLatticePoints().collectAsState(initial = listOf())
-    val scope = rememberCoroutineScope()
     val latticeLines by viewModel
-        .getLatticeLines().collectAsState(initial = Pair(listOf(), listOf()), context = scope.coroutineContext)
+        .getLatticeLines().collectAsState(initial = null)
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 

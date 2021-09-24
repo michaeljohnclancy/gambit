@@ -1,5 +1,7 @@
 package com.wadiyatalkinabeet.gambit.cv
 
+import com.wadiyatalkinabeet.gambit.math.algorithms.NthElement
+import com.wadiyatalkinabeet.gambit.math.algorithms.quickSelect
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
@@ -56,11 +58,11 @@ expect fun medianBlur(src: Mat, dst: Mat, kernelSize: Int)
 
 expect fun gaussianBlur(src: Mat, dst: Mat, kernelSize: Size, sigmaX: Double)
 
-fun Mat.median(): Double {
+fun Mat.median(): Int {
     //TODO Performance: Sorting is unnecessary for median calculation.
     val flattenedArray = ravel()
-    flattenedArray.sort()
-    return median(flattenedArray)
+    return quickSelect(flattenedArray, 0, flattenedArray.size-1, flattenedArray.size/2)
+//    return NthElement().run(flattenedArray.map { it.toDouble() }.toDoubleArray(), flattenedArray.size/2)
 }
 
 
@@ -77,11 +79,11 @@ fun autoCanny(
     canny(dst, dst, lowerThreshold, upperThreshold)
 }
 
-fun Mat.ravel(): DoubleArray {
+fun Mat.ravel(): IntArray {
     val reshapedMat: Mat = this.reshape(1, 1)
-    val flattenedArray = DoubleArray(reshapedMat.width())
+    val flattenedArray = IntArray(reshapedMat.width())
     for (i in flattenedArray.indices) {
-        flattenedArray[i] = reshapedMat[0, i]!![0]
+        flattenedArray[i] = reshapedMat[0, i]!![0].toInt()
     }
     return flattenedArray
 }
