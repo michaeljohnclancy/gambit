@@ -21,12 +21,14 @@ private fun applyHoughLinesP(
     val segments: ArrayList<Segment> = arrayListOf()
     for (i in 0 until lines.rows()) {
         lines[i, 0]?.let {
-            segments.add(Segment(
+            segments.add(
+                Segment(
                 x0 = (mat.height() - it[1]) / scale,
                 y0 = it[0] / scale,
                 x1 = (mat.height() - it[3]) / scale,
                 y1 = it[2] / scale
-            ))
+            )
+            )
         }
 
     }

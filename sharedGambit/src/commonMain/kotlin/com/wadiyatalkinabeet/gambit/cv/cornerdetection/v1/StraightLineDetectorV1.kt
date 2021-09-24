@@ -1,10 +1,10 @@
 package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v1
 //
-//import com.wadiyatalkinabeet.gambit.math.geometry.Point
-//import com.wadiyatalkinabeet.gambit.math.geometry.Segment
-//import com.wadiyatalkinabeet.gambit.math.geometry.isSimilarTo
-//import com.wadiyatalkinabeet.gambit.math.geometry.toPoints
-//import com.wadiyatalkinabeet.gambit.math.sorting.DisjointSet
+//import com.wadiyatalkinabeet.gambit.math.datastructures.Point
+//import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
+//import com.wadiyatalkinabeet.gambit.math.datastructures.isSimilarTo
+//import com.wadiyatalkinabeet.gambit.math.datastructures.toPoints
+//import com.wadiyatalkinabeet.gambit.math.datastructures.DisjointSet
 //import org.opencv.core.CvType.*
 //
 //import org.opencv.core.Mat

@@ -1,6 +1,6 @@
 package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v1
 //
-//import com.wadiyatalkinabeet.gambit.math.geometry.Segment
+//import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 //import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 //import com.wadiyatalkinabeet.gambit.utils.FCluster
 //import org.opencv.core.*

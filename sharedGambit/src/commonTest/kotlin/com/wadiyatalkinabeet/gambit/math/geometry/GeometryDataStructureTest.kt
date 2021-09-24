@@ -1,5 +1,9 @@
 package com.wadiyatalkinabeet.gambit.math.geometry
 
+import com.wadiyatalkinabeet.gambit.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
+import com.wadiyatalkinabeet.gambit.math.datastructures.isSimilarTo
+import com.wadiyatalkinabeet.gambit.math.datastructures.toPoints
 import kotlin.test.Test
 import kotlin.test.Ignore
 import kotlin.test.assertTrue

@@ -3,7 +3,9 @@ package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 import com.wadiyatalkinabeet.gambit.cv.*
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
+import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
+import java.lang.IndexOutOfBoundsException
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.pow
@@ -69,5 +71,16 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>> {
         throw InvalidFrameException("Too many lines in image")
     }
 
-    return cluster(allLines) ?: throw InvalidFrameException("Not enough line clusters found")
+//    return cluster(allLines)
+
+    val agglomerative = AverageAgglomerative(allLines, numClusters = 2)
+    agglomerative.run()
+
+    return try {
+        agglomerative.clusters
+            .map { cluster -> cluster.value.map { allLines[it] } }
+            .let{ Pair(it[0], it[1])}
+    } catch (e: IndexOutOfBoundsException){
+        throw InvalidFrameException("No lines detected")
+    }
 }

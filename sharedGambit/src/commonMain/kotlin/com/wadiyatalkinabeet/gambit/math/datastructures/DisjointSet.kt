@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit.math.sorting
+package com.wadiyatalkinabeet.gambit.math.datastructures
 
 class DisjointSet(val size: Int) {
     private val rank = ByteArray(size)
