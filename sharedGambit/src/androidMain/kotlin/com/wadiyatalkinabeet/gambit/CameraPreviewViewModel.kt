@@ -55,19 +55,18 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 //    }
 
     @SuppressLint("UnsafeOptInUsageError")
-    fun getLatticeLines(): Flow<Pair<List<Line>, List<Line>>> {
-        return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
+    fun getLatticeLines(): Flow<Pair<List<Line>, List<Line>>?>
+         = _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
             .map { imageProxy ->
                 imageProxy.image?.toMat()?.let {
                     imageProxy.close()
                     try {
                         findCorners(it)
                     } catch (_: InvalidFrameException) {
-                        null
+                        Pair(listOf(), listOf())
                     }
                 }
-            }.filterNotNull().flowOn(Dispatchers.IO)
-    }
+            }.flowOn(Dispatchers.IO)
 
     private fun newImageAnalysisUseCase() = ImageAnalysis.Builder()
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)

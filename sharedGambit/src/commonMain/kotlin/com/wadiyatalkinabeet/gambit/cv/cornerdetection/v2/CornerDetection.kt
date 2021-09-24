@@ -25,7 +25,8 @@ fun resize(
 
 fun detectEdges(src: Mat, edges: Mat){
     //Needs to be uint8 according to python?
-    canny(src, edges, 90.0, 400.0, 3)
+//    canny(src, edges, 90.0, 400.0, 3)
+    autoCanny(src, edges)
 }
 
 fun detectLines(
@@ -60,15 +61,16 @@ fun cluster(lines: List<Line>, maxAngle: Double = PI/180): Pair<List<Line>, List
     return allClusters.sortedBy{-it.size}.take(2).let{Pair(it[0], it[1])}
 }
 
-fun findCorners(src: Mat): Pair<List<Line>, List<Line>> {
+fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val tmpMat = Mat()
     resize(src, tmpMat)
     cvtColor(tmpMat, tmpMat, COLOR_BGR2GRAY)
     detectEdges(tmpMat, tmpMat)
+//    val allLines = detectLines(tmpMat, eliminateDiagonalThresholdRads = 0.524)
     val allLines = detectLines(tmpMat)
 
     if (allLines.size > 400){
-        throw InvalidFrameException("Too many lines in image")
+        return null
     }
 
 //    return cluster(allLines)
@@ -81,6 +83,6 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>> {
             .map { cluster -> cluster.value.map { allLines[it] } }
             .let{ Pair(it[0], it[1])}
     } catch (e: IndexOutOfBoundsException){
-        throw InvalidFrameException("No lines detected")
+        return null
     }
 }

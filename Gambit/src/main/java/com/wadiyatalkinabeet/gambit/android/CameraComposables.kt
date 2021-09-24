@@ -18,6 +18,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
@@ -69,15 +70,16 @@ fun LatticeOverlayLayer(
 ) {
 //    val latticePoints by viewModel
 //        .getLatticePoints().collectAsState(initial = listOf())
+    val scope = rememberCoroutineScope()
     val latticeLines by viewModel
-        .getLatticeLines().collectAsState(initial = Pair(listOf(), listOf()))
+        .getLatticeLines().collectAsState(initial = Pair(listOf(), listOf()), context = scope.coroutineContext)
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             val screenSize = Pair(size.width.toInt(), size.height.toInt())
             val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
-            latticeLines.let {
+            latticeLines?.let {
                 drawSegments(
                     g = this,
                     segments = it.first.map { line ->

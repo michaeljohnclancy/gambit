@@ -1,16 +1,14 @@
 package com.wadiyatalkinabeet.gambit.math.statistics.clustering
 
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
-import ru.ifmo.ctddev.igushkin.cg.geometry.distance
 
 class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
 
-    private val distanceMatrix = mutableMapOf<Pair<Int, Int>, Double>()
-//    private val clusters = lines.indices.map { Pair(it, it) }
+    private val clusterDistanceMatrix = mutableMapOf<Set<Int>, Double>()
+    private val thetaDistanceMatrix = mutableMapOf<Set<Int>, Double>()
+
     val clusters = mutableMapOf<Int, MutableSet<Int>>()
-//
-//    private val disjointSet = DisjointSet(size = lines.size)
-//
+
     init {
         lines.indices.forEach { clusters[it] = mutableSetOf(it) }
         updateDistanceMatrix()
@@ -18,41 +16,46 @@ class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
 
     fun run() {
         while (clusters.size > numClusters){
-            clusters.keys.flatMap { i -> clusters.keys.map { i to it }}
-                .filter { it.first != it.second }
-                .minByOrNull { distanceMatrix[Pair(it.first, it.second)]!! }
-            ?.let {
-                clusters[it.second]?.forEach { clusterMemberIdx -> clusters[it.first]?.add(clusterMemberIdx) }
-                clusters.remove(it.second)
+            clusterDistanceMatrix.keys
+                .minByOrNull { clusterDistanceMatrix.getValue(it) }
+                ?.let {
+                clusters[it.last()]?.forEach { clusterMemberIdx -> clusters[it.first()]?.add(clusterMemberIdx) }
 
-//                distanceMatrix.remove(it)
-                updateDistanceMatrix(cluster1Index = it.first)
+                clusters.remove(it.last())
+
+                updateDistanceMatrix(remainingClusterIdx = it.first(), removedClusterIndex = it.last())
             }
         }
     }
 
-    private fun updateDistanceMatrix(cluster1Index: Int){
+    private fun updateDistanceMatrix(remainingClusterIdx: Int, removedClusterIndex: Int? = null){
+        removedClusterIndex?.let {
+            clusterDistanceMatrix
+                .filter { it.key.contains(removedClusterIndex) }
+                .forEach { clusterDistanceMatrix.remove(it.key) }
+        }
 
-        for (idx in clusters.keys) {
-//            distanceMatrix.remove(Pair(idx, cluster2Index))
-//            distanceMatrix.remove(Pair(cluster2Index, idx))
-            if (cluster1Index == idx) continue
-            distanceMatrix[Pair(cluster1Index, idx)] = averageLinkage(
-                cluster1 = clusters.getValue(cluster1Index), cluster2 = clusters.getValue(idx))
+        for (cluster2Index in clusters.keys) {
+            if (remainingClusterIdx  == cluster2Index) continue
+            clusterDistanceMatrix[setOf(remainingClusterIdx, cluster2Index)] = averageLinkage(
+                cluster1 = clusters.getValue(remainingClusterIdx), cluster2 = clusters.getValue(cluster2Index))
         }
     }
 
     private fun updateDistanceMatrix(){
         for (cluster1Index in clusters.keys){
             updateDistanceMatrix(cluster1Index)
-        } }
+        }
+    }
 
-//            clusters.flatMap { cluster1 -> clusters.map { cluster2 -> cluster1 to cluster2 }}
-//            .forEach { distanceMatrix[Pair(it.first.key, it.second.key)] = averageLinkage(it.first.value, it.second.value)}
     private fun averageLinkage(cluster1: MutableSet<Int>, cluster2: MutableSet<Int>): Double {
         return cluster1
             .flatMap { i -> cluster2.map { i to it } }
-            .map { lines[it.first].angleTo(lines[it.second]) }
+            .filter { it.first != it.second }
+            .map { (thetaIndex1, thetaIndex2) -> thetaDistanceMatrix[setOf(thetaIndex1, thetaIndex2)]
+                ?: lines[thetaIndex1].angleTo(lines[thetaIndex2])
+                    .also { thetaDistanceMatrix[setOf(thetaIndex1, thetaIndex2)] = it }
+            }
             .sumOf { it } / (cluster1.size * cluster2.size)
 
     }
