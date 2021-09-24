@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -94,6 +95,23 @@ fun LatticeOverlayLayer(
                     },
                     color = Color.Green,
                     strokeWidth = 5f
+                )
+
+                val latticePoints = it.first.map { horizontal ->
+                    it.second.mapNotNull { vertical ->
+                        horizontal.intersection(vertical)
+                    }
+                }.flatten().map { point ->
+                    point.cvToScreenCoords(screenSize, matSize)
+                }.map { point ->
+                    Offset(point.x.toFloat(), point.y.toFloat())
+                }
+
+                drawPoints(
+                    latticePoints,
+                    PointMode.Points,
+                    Color.Blue,
+                    12f
                 )
             }
         }

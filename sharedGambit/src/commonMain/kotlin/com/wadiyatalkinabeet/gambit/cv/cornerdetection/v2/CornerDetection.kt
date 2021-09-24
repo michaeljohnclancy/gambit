@@ -2,8 +2,10 @@ package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.cv.*
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
+import com.wadiyatalkinabeet.gambit.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
+import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
 import java.lang.IndexOutOfBoundsException
 import kotlin.math.PI
@@ -61,12 +63,40 @@ fun cluster(lines: List<Line>, maxAngle: Double = PI/180): Pair<List<Line>, List
     return allClusters.sortedBy{-it.size}.take(2).let{Pair(it[0], it[1])}
 }
 
+fun eliminateSimilarLines(lines: List<Line>, perpendicularLines: List<Line>): List<Line> {
+    val perpendicular = perpendicularLines
+        .fold(
+            initial = Line(0.0, 0.0),
+            operation = { mean: Line, line: Line ->
+                Line(mean.rho + line.rho, mean.theta + line.theta)
+            })
+        .let{
+            Line(it.rho / perpendicularLines.size, it.theta / perpendicularLines.size)
+        }
+
+    val nullIndices: MutableList<Int> = mutableListOf()
+    val intersections = lines.mapIndexed { i, line ->
+        line.intersection(perpendicular) ?: run {
+            nullIndices.add(i)
+        }.let{ null }
+    }.filterNotNull()
+
+    // Filter out lines with no intersection
+    val goodLines = if (nullIndices.isNotEmpty()) {
+        lines.filterIndexed { i, _ -> !nullIndices.contains(i) }
+    } else lines
+
+    // Now run DB scan and throw away all lines except those that have the first point in each cluster
+    return DBScan(intersections).map {
+        goodLines[it.first()]
+    }
+}
+
 fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val tmpMat = Mat()
     resize(src, tmpMat)
     cvtColor(tmpMat, tmpMat, COLOR_BGR2GRAY)
     detectEdges(tmpMat, tmpMat)
-//    val allLines = detectLines(tmpMat, eliminateDiagonalThresholdRads = 0.524)
     val allLines = detectLines(tmpMat)
 
     if (allLines.size > 400){
@@ -78,11 +108,16 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val agglomerative = AverageAgglomerative(allLines, numClusters = 2)
     agglomerative.run()
 
-    return try {
+    var (verticals, horizontals) = try {
         agglomerative.clusters
             .map { cluster -> cluster.value.map { allLines[it] } }
-            .let{ Pair(it[0], it[1])}
+            .let{ Pair(it[0], it[1]) }
     } catch (e: IndexOutOfBoundsException){
         return null
     }
+
+    verticals = eliminateSimilarLines(verticals, horizontals)
+    horizontals = eliminateSimilarLines(horizontals, verticals)
+    return Pair(verticals, horizontals)
+
 }
