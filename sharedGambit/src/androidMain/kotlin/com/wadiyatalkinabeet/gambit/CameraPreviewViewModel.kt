@@ -14,6 +14,7 @@ import com.wadiyatalkinabeet.gambit.cv.toMat
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withTimeoutOrNull
 import org.opencv.android.OpenCVLoader
 
 class CameraPreviewViewModel(application: Application) : AndroidViewModel(application) {
@@ -54,15 +55,13 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 //    }
 
     @SuppressLint("UnsafeOptInUsageError")
-    fun getLatticeLines(): Flow<Pair<List<Line>, List<Line>>> =
-            _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
-                .map { imageProxy ->
-                    imageProxy.image?.toMat()?.let {
-                        imageProxy.close()
-                        findCorners(it)
-                    }
-                }.filterNotNull().flowOn(Dispatchers.IO)
-                .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), 0)
+    fun getLatticeLines(): Flow<Pair<List<Line>, List<Line>>?> {
+        return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
+            .map { imageProxy -> imageProxy.image?.toMat()?.also { imageProxy.close() } }
+            .filterNotNull()
+            .map { mat -> withTimeoutOrNull(timeMillis = 10) { findCorners(mat) } }
+            .flowOn(Dispatchers.IO).shareIn(viewModelScope, SharingStarted.WhileSubscribed(), 0)
+    }
 
     private fun newImageAnalysisUseCase() = ImageAnalysis.Builder()
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)

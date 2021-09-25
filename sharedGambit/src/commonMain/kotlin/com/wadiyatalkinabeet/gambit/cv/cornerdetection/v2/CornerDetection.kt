@@ -7,6 +7,7 @@ import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
+import org.opencv.imgproc.Imgproc
 import java.lang.IndexOutOfBoundsException
 import kotlin.math.PI
 import kotlin.math.abs
@@ -26,9 +27,8 @@ fun resize(
 }
 
 fun detectEdges(src: Mat, edges: Mat){
-    //Needs to be uint8 according to python?
-//    canny(src, edges, 90.0, 400.0, 3)
-    autoCanny(src, edges)
+    src.convertTo(src, CV_8UC1)
+    canny(src, edges, 90.0, 400.0, 3)
 }
 
 fun detectLines(
@@ -66,7 +66,7 @@ fun cluster(lines: List<Line>, maxAngle: Double = PI/180): Pair<List<Line>, List
 fun eliminateSimilarLines(lines: List<Line>, perpendicularLines: List<Line>): List<Line> {
     val perpendicular = perpendicularLines
         .fold(
-            initial = Line(0.0, 0.0),
+            initial = Line(0.0f, 0.0f),
             operation = { mean: Line, line: Line ->
                 Line(mean.rho + line.rho, mean.theta + line.theta)
             })
@@ -92,7 +92,7 @@ fun eliminateSimilarLines(lines: List<Line>, perpendicularLines: List<Line>): Li
     }
 }
 
-fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
+suspend fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val tmpMat = Mat()
     resize(src, tmpMat)
     cvtColor(tmpMat, tmpMat, COLOR_BGR2GRAY)
@@ -100,7 +100,8 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
 //    val allLines = detectLines(tmpMat, eliminateDiagonalThresholdRads = 0.524)
     val allLines = detectLines(tmpMat)
 
-    if (allLines.size > 400){
+    // Originally 400
+    if (allLines.size > 200){
         return null
     }
 
@@ -109,13 +110,24 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val agglomerative = AverageAgglomerative(allLines, numClusters = 2)
     agglomerative.run()
 
-    var (verticals, horizontals) = agglomerative.clusters
+    var (lineGroup0, lineGroup1) = agglomerative.clusters
             .map { cluster -> cluster.value.map { allLines[it] } }
             .also { if (it.size != 2 || it[0].size < 2 || it[1].size < 2) return null }
             .let{ Pair(it[0], it[1]) }
 
-    verticals = eliminateSimilarLines(verticals, horizontals)
-    horizontals = eliminateSimilarLines(horizontals, verticals)
-    return Pair(verticals, horizontals)
 
+    val averageAngleToYAxisGroup0 = lineGroup0.map { it.angleTo(Line(0.0f,0.0f)) }.sum() / lineGroup0.size
+    val averageAngleToYAxisGroup1 = lineGroup1.map { it.angleTo(Line(0.0f,0.0f)) }.sum() / lineGroup1.size
+
+    var (horizontalLines, verticalLines) = if (averageAngleToYAxisGroup0 > averageAngleToYAxisGroup1)
+       Pair(lineGroup0, lineGroup1) else
+        Pair(lineGroup1, lineGroup0)
+
+    horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
+    verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
+
+    return Pair(
+        horizontalLines,
+        verticalLines
+    )
 }

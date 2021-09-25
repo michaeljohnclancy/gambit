@@ -69,17 +69,15 @@ private fun CameraLayer(
 fun LatticeOverlayLayer(
     viewModel: CameraPreviewViewModel
 ) {
-//    val latticePoints by viewModel
-//        .getLatticePoints().collectAsState(initial = listOf())
     val latticeLines by viewModel
-        .getLatticeLines().collectAsState(initial = Pair(listOf(), listOf()))
+        .getLatticeLines().collectAsState(initial = null)
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             val screenSize = Pair(size.width.toInt(), size.height.toInt())
             val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
-            latticeLines.let {
+            latticeLines?.let {
                 drawSegments(
                     g = this,
                     segments = it.first.map { line ->
@@ -97,15 +95,12 @@ fun LatticeOverlayLayer(
                     strokeWidth = 5f
                 )
 
-                val latticePoints = it.first.map { horizontal ->
+                val latticePoints = it.first.flatMap { horizontal ->
                     it.second.mapNotNull { vertical ->
                         horizontal.intersection(vertical)
                     }
-                }.flatten().map { point ->
-                    point.cvToScreenCoords(screenSize, matSize)
-                }.map { point ->
-                    Offset(point.x.toFloat(), point.y.toFloat())
-                }
+                }.map { point -> point.cvToScreenCoords(screenSize, matSize)
+                }.map { point -> Offset(point.x, point.y) }
 
                 drawPoints(
                     latticePoints,
@@ -121,8 +116,8 @@ fun drawSegments(g: DrawScope, segments: List<Segment>, color: Color, strokeWidt
     for (seg in segments) {
         g.drawLine(
             color,
-            start = Offset(seg.p0.x.toFloat(), seg.p0.y.toFloat()),
-            end = Offset(seg.p1.x.toFloat(), seg.p1.y.toFloat()),
+            start = Offset(seg.p0.x, seg.p0.y),
+            end = Offset(seg.p1.x, seg.p1.y),
             strokeWidth=strokeWidth,
         )
     }
@@ -154,54 +149,3 @@ private fun PermissionLayer(onRequestCameraPermission: () -> Unit) {
         }
     }
 }
-
-//private fun bindPreview(
-//    lifecycleOwner: LifecycleOwner,
-//    previewView: PreviewView,
-//    cameraProvider: ProcessCameraProvider,
-//    analyzer: ImageAnalysis.Analyzer,
-//    executor: Executor
-//) {
-//    val preview = Preview.Builder().build().also {
-//        it.setSurfaceProvider(previewView.surfaceProvider)
-//    }
-//
-//    val cameraSelector = CameraSelector.Builder()
-//        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-//        .build()
-//
-//    cameraProvider.unbindAll()
-//    cameraProvider.bindToLifecycle(
-//        lifecycleOwner,
-//        cameraSelector,
-//        setupImageAnalysis(previewView, executor, analyzer),
-//        preview
-//    )
-//}
-//
-//private fun setupImageAnalysis(
-//    previewView: PreviewView,
-//    executor: Executor,
-//    analyzer: ImageAnalysis.Analyzer
-//): ImageAnalysis {
-//    return ImageAnalysis.Builder()
-//        .setTargetResolution(Size(previewView.width, previewView.height))
-//        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-//        .build()
-//        .apply {
-//            setAnalyzer(executor, analyzer)
-//        }
-//}
-//
-
-//enum class PermissionStatus {
-//    GRANTED,
-//    DENIED,
-//    DO_NOT_ASK_AGAIN;
-//
-//    val granted: Boolean
-//        get() = this === GRANTED
-//
-//    val denied: Boolean
-//        get() = this === DENIED || this === DO_NOT_ASK_AGAIN
-//}

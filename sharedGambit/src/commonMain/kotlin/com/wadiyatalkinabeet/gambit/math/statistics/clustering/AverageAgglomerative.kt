@@ -4,8 +4,8 @@ import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 
 class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
 
-    private val clusterDistanceMatrix = mutableMapOf<Set<Int>, Double>()
-    private val thetaDistanceMatrix = mutableMapOf<Set<Int>, Double>()
+    private val clusterDistanceMatrix = mutableMapOf<Set<Int>, Float>()
+    private val thetaDistanceMatrix = mutableMapOf<Set<Int>, Float>()
 
     val clusters = mutableMapOf<Int, MutableSet<Int>>()
 
@@ -48,7 +48,7 @@ class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
         }
     }
 
-    private fun averageLinkage(cluster1: MutableSet<Int>, cluster2: MutableSet<Int>): Double {
+    private fun averageLinkage(cluster1: MutableSet<Int>, cluster2: MutableSet<Int>): Float {
         return cluster1
             .flatMap { i -> cluster2.map { i to it } }
             .filter { it.first != it.second }
@@ -56,7 +56,17 @@ class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
                 ?: lines[thetaIndex1].angleTo(lines[thetaIndex2])
                     .also { thetaDistanceMatrix[setOf(thetaIndex1, thetaIndex2)] = it }
             }
-            .sumOf { it } / (cluster1.size * cluster2.size)
-
+            .sum() / (cluster1.size * cluster2.size)
     }
+
+//    private fun averageLinkageQuick(cluster1: MutableSet<Int>, cluster2: MutableSet<Int>): Double {
+//        val clusterIndexPairs = cluster1
+//            .flatMap { i -> cluster2.map { i to it } }
+//            .filter { it.first != it.second }
+//            .map { (thetaIndex1, thetaIndex2) -> thetaDistanceMatrix[setOf(thetaIndex1, thetaIndex2)]
+//                ?: lines[thetaIndex1].angleTo(lines[thetaIndex2])
+////                    .also { thetaDistanceMatrix[setOf(thetaIndex1, thetaIndex2)] = it }
+////            }
+////            .sumOf { it } / (cluster1.size * cluster2.size)
+//    }
 }

@@ -13,6 +13,7 @@ import kotlin.math.min
 expect fun initOpenCV()
 
 const val COLOR_BGR2GRAY = 6
+const val CV_8UC1 = 0
 
 expect open class Mat()
 
@@ -94,16 +95,16 @@ fun Line.Companion.fromHoughLines(src: Mat): List<Line> {
         .map{ src.get(it, 0) }
         .map{
             if (it[0] > 0) {
-                Line(it[0], it[1])
+                Line(it[0].toFloat(), it[1].toFloat())
             } else {
-                Line(-it[0], it[1] - PI)
+                Line(-it[0].toFloat(), (it[1] - PI).toFloat())
             }
         }
 }
 
 fun Point.cvToScreenCoords(screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>): Point {
-    return Point(matSize.second.toDouble() - y, x) *
-            (screenSize.first.toDouble() / matSize.second.toDouble())
+    return Point(matSize.second.toFloat() - y, x) *
+            (screenSize.first.toFloat() / matSize.second.toFloat())
 }
 
 fun Segment.cvToScreenCoords(screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>): Segment {
