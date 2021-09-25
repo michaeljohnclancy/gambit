@@ -1,6 +1,8 @@
 package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.cv.*
+import com.wadiyatalkinabeet.gambit.math.algorithms.MeshgridIndex
+import com.wadiyatalkinabeet.gambit.math.algorithms.meshGrid
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
@@ -9,10 +11,7 @@ import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
 import org.opencv.imgproc.Imgproc
 import java.lang.IndexOutOfBoundsException
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 
 fun resize(
     src: Mat,
@@ -92,7 +91,7 @@ fun eliminateSimilarLines(lines: List<Line>, perpendicularLines: List<Line>): Li
     }
 }
 
-suspend fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
+fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val tmpMat = Mat()
     resize(src, tmpMat)
     cvtColor(tmpMat, tmpMat, COLOR_BGR2GRAY)
@@ -126,8 +125,45 @@ suspend fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
     verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
 
+    val intersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
+
     return Pair(
         horizontalLines,
         verticalLines
     )
+}
+
+fun findIntersectionPoints(horizontalLines: List<Line>, verticalLines: List<Line>): Array<Array<Point?>> {
+
+    val (rho1, rho2) = meshGrid(horizontalLines.map { it.rho }.toFloatArray(), verticalLines.map { it.rho }.toFloatArray(), MeshgridIndex.IJ)
+    val (theta1, theta2) = meshGrid(horizontalLines.map { it.theta }.toFloatArray(), verticalLines.map { it.theta }.toFloatArray(), MeshgridIndex.IJ)
+
+    val intersectionPoints = Array(rho1.size) {
+        Array<Point?>(rho1[0].size) { _ -> null }
+    }
+    for (i in rho1.indices){
+        for (j in rho1[i].indices){
+            intersection(rho1 = rho1[i][j], theta1 = theta1[i][j], rho2 = rho2[i][j], theta2 = theta2[i][j])?.let {
+                intersectionPoints[i][j] = it
+            }
+        }
+
+    }
+    return intersectionPoints
+}
+
+
+fun intersection(rho1: Float, theta1: Float, rho2: Float, theta2: Float): Point? {
+    val cos0 = cos(theta1)
+    val cos1 = cos(theta2)
+    val sin0 = sin(theta1)
+    val sin1 = sin(theta2)
+    return try {
+        Point(
+            (sin0 * rho2 - sin1 * rho1) / (cos1 * sin0 - cos0 * sin1),
+            (cos0 * rho2 - cos1 * rho1) / (sin1 * cos0 - sin0 * cos1)
+        )
+    } catch (_: ArithmeticException) {
+        null
+    }
 }
