@@ -1,16 +1,14 @@
 package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.cv.*
+import com.wadiyatalkinabeet.gambit.cv.Point
 import com.wadiyatalkinabeet.gambit.math.algorithms.MeshgridIndex
+import com.wadiyatalkinabeet.gambit.math.algorithms.computeHomography
 import com.wadiyatalkinabeet.gambit.math.algorithms.meshGrid
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
-import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
-import org.opencv.imgproc.Imgproc
-import java.lang.IndexOutOfBoundsException
 import kotlin.math.*
 
 fun resize(
@@ -111,7 +109,7 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
 
     var (lineGroup0, lineGroup1) = agglomerative.clusters
             .map { cluster -> cluster.value.map { allLines[it] } }
-            .also { if (it.size != 2 || it[0].size < 2 || it[1].size < 2) return null }
+            .also { if (it.size != 2) return null }
             .let{ Pair(it[0], it[1]) }
 
 
@@ -125,12 +123,53 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
     verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
 
+    if (horizontalLines.size <=2 || verticalLines.size <= 2){
+        return null
+    }
+
     val intersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
+
+    val nIterations = 200
+    for (epoch in 0 until nIterations) {
+        val rows = horizontalLines.indices.shuffled().take(2)
+        val cols = verticalLines.indices.shuffled().take(2)
+
+        val transformationMatrix = computeHomography(intersectionPoints = intersectionPoints, rowIndex1 = rows[0], rowIndex2 = rows[1], colIndex1 = cols[0], colIndex2 = cols[1])
+
+        val warpedPoints = warpPoints(intersectionPoints, transformationMatrix)
+        print(warpedPoints)
+    }
 
     return Pair(
         horizontalLines,
         verticalLines
     )
+}
+
+fun warpPoint(x: Double, y: Double, z: Double, transformationMatrix: Mat): Triple<Double, Double, Double> {
+
+    val warpedX = (x * transformationMatrix.get(2,0)[0]) + (y * transformationMatrix.get(2,1)[0]) + (z * transformationMatrix.get(0,2)[0])
+    val warpedY = (x * transformationMatrix.get(1,0)[0]) + (y * transformationMatrix.get(1,1)[0]) + (z * transformationMatrix.get(1,2)[0])
+    val warpedZ = (x * transformationMatrix.get(0,0)[0]) + (y * transformationMatrix.get(0,1)[0]) + (z * transformationMatrix.get(0,2)[0])
+
+    return Triple(warpedX, warpedY, warpedZ)
+}
+
+fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMatrix: Mat): Array<Array<Point?>>{
+    val warpedPoints = Array(intersectionPoints.size) {
+        Array<Point?>(
+            intersectionPoints[0].size
+        ) {null}
+    }
+    for (i in intersectionPoints.indices){
+        for (j in intersectionPoints[i].indices){
+            intersectionPoints[i][j]?.let {
+                val (warpedX, warpedY, _) = warpPoint(it.x, it.y, 1.0, transformationMatrix)
+                warpedPoints[i][j] = Point(warpedX, warpedY)
+            }
+        }
+    }
+    return warpedPoints
 }
 
 fun findIntersectionPoints(horizontalLines: List<Line>, verticalLines: List<Line>): Array<Array<Point?>> {
@@ -160,8 +199,8 @@ fun intersection(rho1: Float, theta1: Float, rho2: Float, theta2: Float): Point?
     val sin1 = sin(theta2)
     return try {
         Point(
-            (sin0 * rho2 - sin1 * rho1) / (cos1 * sin0 - cos0 * sin1),
-            (cos0 * rho2 - cos1 * rho1) / (sin1 * cos0 - sin0 * cos1)
+            (sin0 * rho2 - sin1 * rho1) / (cos1 * sin0 - cos0 * sin1).toDouble(),
+            (cos0 * rho2 - cos1 * rho1) / (sin1 * cos0 - sin0 * cos1).toDouble()
         )
     } catch (_: ArithmeticException) {
         null

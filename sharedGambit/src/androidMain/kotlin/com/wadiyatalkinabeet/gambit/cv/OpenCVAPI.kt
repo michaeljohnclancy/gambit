@@ -4,10 +4,12 @@ import android.graphics.ImageFormat
 import android.media.Image
 import org.opencv.android.OpenCVLoader
 import org.opencv.calib3d.Calib3d
+import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgcodecs.Imgcodecs.imread
 import org.opencv.imgproc.Imgproc
+import org.opencv.utils.Converters
 
 actual fun initOpenCV() {
     OpenCVLoader.initDebug()
@@ -15,7 +17,16 @@ actual fun initOpenCV() {
 
 actual typealias Mat = org.opencv.core.Mat
 actual typealias MatOfPoint2f = org.opencv.core.MatOfPoint2f
+actual typealias MatOfPoint3f = org.opencv.core.MatOfPoint3f
+actual typealias Point = org.opencv.core.Point
+actual typealias Point3 = org.opencv.core.Point3
 actual typealias Size = org.opencv.core.Size
+
+actual fun multiply(src1: Mat, src2: Mat, dst: Mat) = Core.multiply(src1, src2, dst)
+
+actual fun gemm(src1: Mat, src2: Mat, alpha: Double, src3: Mat, beta: Double, dst: Mat) = Core.gemm(src1, src2, alpha, src3, beta, dst)
+
+actual fun vector_Point2d_to_Mat(points: List<Point>): Mat = Converters.vector_Point2d_to_Mat(points)
 
 actual fun canny(
     src: Mat,
