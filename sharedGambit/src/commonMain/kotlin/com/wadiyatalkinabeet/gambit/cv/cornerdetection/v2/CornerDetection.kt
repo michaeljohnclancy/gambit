@@ -2,9 +2,7 @@ package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.cv.*
 import com.wadiyatalkinabeet.gambit.cv.Point
-import com.wadiyatalkinabeet.gambit.math.algorithms.MeshgridIndex
-import com.wadiyatalkinabeet.gambit.math.algorithms.computeHomography
-import com.wadiyatalkinabeet.gambit.math.algorithms.meshGrid
+import com.wadiyatalkinabeet.gambit.math.algorithms.*
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
@@ -98,7 +96,7 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val allLines = detectLines(tmpMat)
 
     // Originally 400
-    if (allLines.size > 200){
+    if (allLines.size > 400){
         return null
     }
 
@@ -138,6 +136,8 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
 
         val warpedPoints = warpPoints(intersectionPoints, transformationMatrix)
         print(warpedPoints)
+        val (scaleX, scaleY, inlierMask) = try{ findBestScale(warpedPoints)} catch (e: InvalidFrameException){ continue }
+        print(scaleX)
     }
 
     return Pair(
@@ -146,31 +146,6 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     )
 }
 
-fun warpPoint(x: Double, y: Double, z: Double, transformationMatrix: Mat): Triple<Double, Double, Double> {
-
-    val warpedX = (x * transformationMatrix.get(2,0)[0]) + (y * transformationMatrix.get(2,1)[0]) + (z * transformationMatrix.get(0,2)[0])
-    val warpedY = (x * transformationMatrix.get(1,0)[0]) + (y * transformationMatrix.get(1,1)[0]) + (z * transformationMatrix.get(1,2)[0])
-    val warpedZ = (x * transformationMatrix.get(0,0)[0]) + (y * transformationMatrix.get(0,1)[0]) + (z * transformationMatrix.get(0,2)[0])
-
-    return Triple(warpedX, warpedY, warpedZ)
-}
-
-fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMatrix: Mat): Array<Array<Point?>>{
-    val warpedPoints = Array(intersectionPoints.size) {
-        Array<Point?>(
-            intersectionPoints[0].size
-        ) {null}
-    }
-    for (i in intersectionPoints.indices){
-        for (j in intersectionPoints[i].indices){
-            intersectionPoints[i][j]?.let {
-                val (warpedX, warpedY, _) = warpPoint(it.x, it.y, 1.0, transformationMatrix)
-                warpedPoints[i][j] = Point(warpedX, warpedY)
-            }
-        }
-    }
-    return warpedPoints
-}
 
 fun findIntersectionPoints(horizontalLines: List<Line>, verticalLines: List<Line>): Array<Array<Point?>> {
 
