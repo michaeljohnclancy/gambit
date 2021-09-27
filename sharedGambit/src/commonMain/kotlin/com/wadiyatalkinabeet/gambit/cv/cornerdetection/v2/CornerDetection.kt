@@ -125,19 +125,52 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
         return null
     }
 
-    val intersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
+    val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines).map { it.toMutableList() }.toMutableList()
 
+    var bestNumInliers = 0
+    var epoch = 0
     val nIterations = 200
-    for (epoch in 0 until nIterations) {
+    while (epoch <= nIterations || bestNumInliers < 30) {
+        epoch++
         val rows = horizontalLines.indices.shuffled().take(2)
         val cols = verticalLines.indices.shuffled().take(2)
 
-        val transformationMatrix = computeHomography(intersectionPoints = intersectionPoints, rowIndex1 = rows[0], rowIndex2 = rows[1], colIndex1 = cols[0], colIndex2 = cols[1])
+        var transformationMatrix = computeHomography(
+            intersectionPoints = allIntersectionPoints,
+            rowIndex1 = rows[0],
+            rowIndex2 = rows[1],
+            colIndex1 = cols[0],
+            colIndex2 = cols[1]
+        )
 
-        val warpedPoints = warpPoints(intersectionPoints, transformationMatrix)
+        var warpedPoints =
+            warpPoints(allIntersectionPoints, transformationMatrix).map { it.toMutableList() }
+                .toMutableList()
         print(warpedPoints)
-        val (scaleX, scaleY, inlierMask) = try{ findBestScale(warpedPoints)} catch (e: InvalidFrameException){ continue }
-        print(scaleX)
+        val (rowsAndColsToKeep, scales) = try {
+            discardOutliers(warpedPoints)
+        } catch (e: InvalidFrameException) {
+            continue
+        }
+
+        warpedPoints = warpedPoints
+            .filterIndexed { i, _ -> rowsAndColsToKeep.first.contains(i) }
+            .map {
+                it.filterIndexed { j, _ -> rowsAndColsToKeep.second.contains(j) }
+                    .toMutableList()
+            }.toMutableList()
+
+        val intersectionPoints = allIntersectionPoints
+            .filterIndexed { i, _ -> rowsAndColsToKeep.first.contains(i) }
+            .map {
+                it.filterIndexed { j, _ -> rowsAndColsToKeep.second.contains(j) }
+                    .toMutableList()
+            }.toMutableList()
+
+        val numInliers = warpedPoints.size * warpedPoints[0].size
+        if (numInliers > bestNumInliers){
+
+        }
     }
 
     return Pair(
