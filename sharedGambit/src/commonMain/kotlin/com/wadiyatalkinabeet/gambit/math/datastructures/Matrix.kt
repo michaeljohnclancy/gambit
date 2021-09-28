@@ -1,5 +1,6 @@
 package com.wadiyatalkinabeet.gambit.math.datastructures
 
+import com.wadiyatalkinabeet.gambit.cv.CV_64F
 import com.wadiyatalkinabeet.gambit.cv.CV_8UC1
 import com.wadiyatalkinabeet.gambit.cv.Mat
 
@@ -88,7 +89,7 @@ fun Mat.toMatrix(): Matrix2D{
 }
 
 fun Matrix2D.toMat(): Mat {
-    var mat = Mat(this.size, this[0].size, CV_8UC1)
+    var mat = Mat(this.size, this[0].size, CV_64F)
     for (i in this.indices) {
         for (j in this[i].indices) {
             mat.put(i, j, this[i][j])
