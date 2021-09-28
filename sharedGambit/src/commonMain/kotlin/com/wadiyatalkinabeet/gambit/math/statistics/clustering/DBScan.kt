@@ -6,12 +6,12 @@ private enum class Type {
     CORE, REACHABLE, OUTLIER
 }
 
-fun DBScan(points: List<Point>, eps: Double = 12.0, minPts: Int = 1): List<Set<Int>> {
+fun DBScan(points: List<Point>, eps: Float = 12f, minPts: Int = 1): List<Set<Int>> {
     val neighbours = points.indices.map{ it to mutableListOf<Int>() }.toMap()
-    val visited = points.indices.map{ it to false}.toMap().toMutableMap()
+    val visited = points.indices.map{ it to false }.toMap().toMutableMap()
 
     points.forEachIndexed { i, point ->
-        (i until points.size).filter {
+        (i+1 until points.size).filter {
             point.euclideanDistanceTo(points[it]) <= eps
         }.forEach{ j ->
             neighbours[i]!!.add(j)
@@ -20,7 +20,7 @@ fun DBScan(points: List<Point>, eps: Double = 12.0, minPts: Int = 1): List<Set<I
     }
 
     val type = neighbours.map{
-        it.key to when (it.value.size) {
+        it.key to when (it.value.size + 1) {  // The +1 is to include the point itself
             0 -> Type.OUTLIER
             in 1 until minPts -> Type.REACHABLE
             else -> Type.CORE

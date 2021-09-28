@@ -1,27 +1,29 @@
 package com.wadiyatalkinabeet.gambit.math.datastructures
 
+import java.lang.Exception
 import kotlin.math.*
 
 typealias Vector = Point
 
 class Point(val x: Float, val y: Float): Comparable<Point> {
+
+    val length: Float by lazy { sqrt(x.pow(2) + y.pow(2)) }
+
     override fun compareTo(other: Point): Int {
         if (x == other.x) return y.compareTo(other.y)
         return x.compareTo(other.x)
     }
 
-    fun length() = sqrt(x.pow(2) + y.pow(2))
-
-    fun isLeftOfLine(from: Point, to: Point): Boolean {
-        return cross(from, to) > 0
-    }
-
-    operator fun minus(point2: Point): Point {
-        return Point(this.x - point2.x, this.y - point2.y)
+    override fun toString(): String {
+        return "($x, $y)"
     }
 
     operator fun plus(point2: Point): Point {
         return Point(this.x + point2.x, this.y + point2.y)
+    }
+
+    operator fun minus(point2: Point): Point {
+        return Point(this.x - point2.x, this.y - point2.y)
     }
 
     operator fun times(scale: Float): Point {
@@ -34,6 +36,10 @@ class Point(val x: Float, val y: Float): Comparable<Point> {
 
     fun cross(origin: Point, p2: Point): Float {
         return (p2.x - origin.x) * (this.y - origin.y) - (p2.y - origin.y) * (this.x - origin.x)
+    }
+
+    fun isLeftOfLine(from: Point, to: Point): Boolean {
+        return cross(from, to) > 0
     }
 
     fun distanceToLine(a: Point, b: Point): Float {
@@ -74,7 +80,7 @@ class Point(val x: Float, val y: Float): Comparable<Point> {
 data class Segment(val p0: Point, val p1: Point) {
     constructor(x0: Float, y0: Float, x1: Float, y1: Float) : this(Point(x0,y0), Point(x1, y1))
 
-    fun length() = p0.euclideanDistanceTo(p1)
+    val length: Float by lazy { p0.euclideanDistanceTo(p1) }
 
     operator fun times(scale: Float): Segment {
         return Segment(
@@ -88,7 +94,7 @@ data class Segment(val p0: Point, val p1: Point) {
     fun angleTo(line: Segment): Float {
         val v1 = this.p1 - this.p0
         val v2 = line.p1 - line.p0
-        return acos((v1.dot(v2)) / (v1.length() * v2.length()) )
+        return acos((v1.dot(v2)) / (v1.length * v2.length) )
     }
 }
 
@@ -106,14 +112,12 @@ data class Line(val rho: Float, val theta: Float) {
         val cos1 = cos(line.theta)
         val sin0 = sin(this.theta)
         val sin1 = sin(line.theta)
-        return try {
-            Point(
-                (sin0 * line.rho - sin1 * this.rho) / (cos1 * sin0 - cos0 * sin1),
-                (cos0 * line.rho - cos1 * this.rho) / (sin1 * cos0 - sin0 * cos1)
-            )
-        } catch (_: ArithmeticException) {
-            null
-        }
+        if (cos1 * sin0 - cos0 * sin1 == 0f || sin1 * cos0 - sin0 * cos1 == 0f)
+            return null
+        return Point(
+            (sin0 * line.rho - sin1 * this.rho) / (cos1 * sin0 - cos0 * sin1),
+            (cos0 * line.rho - cos1 * this.rho) / (sin1 * cos0 - sin0 * cos1)
+        )
     }
 
     // This is only a quick translation for drawing to screen
@@ -138,9 +142,9 @@ fun Segment.isSimilarTo(segment2: Segment): Boolean {
     //FIXME: Why EPSILON?
     //    val ds = (d1x + d2x + d1y + d2y) / 4 + EPSILON
     val ds = (d1x + d2x + d1y + d2y) / 4
-    val maxError = 0.0625 * (length() + segment2.length())
+    val maxError = 0.0625 * (length + segment2.length)
 
-    return (length() / ds > maxError).and(segment2.length() / ds > maxError)
+    return (length / ds > maxError).and(segment2.length / ds > maxError)
 }
 
 fun Segment.toPoints(nPoints: Int): List<Point> {
