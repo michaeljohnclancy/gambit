@@ -81,8 +81,9 @@ actual fun sobel(
     dst: Mat,
     ddepth: Int,
     dx: Int,
-    dy: Int
-) = Imgproc.Sobel(src, dst, ddepth, dx, dy)
+    dy: Int,
+    kernelSize: Int
+) = Imgproc.Sobel(src, dst, ddepth, dx, dy, kernelSize)
 
 actual fun medianBlur(
     src: Mat,

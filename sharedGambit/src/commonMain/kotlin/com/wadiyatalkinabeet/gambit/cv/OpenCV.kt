@@ -12,6 +12,7 @@ expect fun initOpenCV()
 
 const val COLOR_BGR2GRAY = 6
 const val CV_8UC1 = 0
+const val CV_64F = 6
 
 expect open class Mat()
 
@@ -63,7 +64,7 @@ expect fun findHomography(srcPoints: MatOfPoint2f, dstPoints: MatOfPoint2f): Mat
 
 expect fun warpPerspective(src: Mat, dst: Mat, transformationMatrix: Mat, dsize: Size)
 
-expect fun sobel(src: Mat, dst: Mat, ddepth: Int, dx: Int, dy: Int)
+expect fun sobel(src: Mat, dst: Mat, ddepth: Int, dx: Int, dy: Int, kernelSize: Int)
 
 expect fun medianBlur(src: Mat, dst: Mat, kernelSize: Int)
 

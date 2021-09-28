@@ -35,6 +35,18 @@ fun warpPoints(intersectionPoints: List<List<Point?>>, transformationMatrix: Mat
     return warpedPoints
 }
 
+fun warpPoints(intersectionPoints: List<Point?>, transformationMatrix: Mat): Array<Point?>{
+    val warpedPoints = Array<Point?>( intersectionPoints.size ) {null}
+
+    for (i in intersectionPoints.indices){
+            intersectionPoints[i]?.let {
+                val (warpedX, warpedY, _) = warpPoint(it.x, it.y, 1.0, transformationMatrix)
+                warpedPoints[i] = Point(warpedX, warpedY)
+            }
+        }
+    return warpedPoints
+}
+
 fun discardOutliers(warpedPoints: List<List<Point?>>, ascendingScales: IntArray = intArrayOf(1,2,3,4,5,6,7,8)): Pair<Pair<MutableSet<Int>, MutableSet<Int>>, Pair<Int, Int>> {
     val scaleInlierCountsX = Array(ascendingScales.size){0}
     val scaleInlierCountsY = Array(ascendingScales.size){0}
@@ -179,6 +191,8 @@ fun quantizePoints(warpedScaledPoints: List<List<Point?>>, intersectionPoints: L
 
     }
 
+    xMax = xMax-xMin+5
+    yMax = yMax-yMin+5
     val warpedImageSize = Size(50.0*(xMax + 5), 50.0 * (yMax + 5))
 
     return RANSACConfiguration(
