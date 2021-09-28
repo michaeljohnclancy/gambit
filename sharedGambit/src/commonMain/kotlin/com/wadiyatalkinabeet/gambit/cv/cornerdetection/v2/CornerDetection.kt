@@ -7,6 +7,7 @@ import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
+import java.lang.IndexOutOfBoundsException
 import kotlin.math.*
 
 fun resize(
@@ -28,18 +29,19 @@ fun detectEdges(src: Mat, edges: Mat){
 
 fun detectLines(
     edges: Mat,
-    eliminateDiagonalThresholdRads: Double? = null,
+    eliminateDiagonals: Boolean = false,
 ): List<Line> {
     val tmpMat = Mat()
     houghLines(edges, tmpMat, 1.0, PI/360, 100)
-    val allLines = Line.fromHoughLines(tmpMat)
+    var allLines = Line.fromHoughLines(tmpMat)
 
     // Looks like this would break diagonal views if enabled
-    fun diagonalFilter(line: Line) = eliminateDiagonalThresholdRads?.let { thresh ->
-        (abs(line.theta) < thresh || abs(line.theta - (PI / 2)) < thresh )
-    } ?: true
+    if (eliminateDiagonals) {
+        fun diagonalFilter(line: Line) = (abs(line.theta) < 0.524 || abs(line.theta - (PI / 2)) < 0.524 )
+            allLines = allLines.filter(::diagonalFilter)
+    }
 
-    return allLines.filter(::diagonalFilter)
+    return allLines
 }
 
 //TODO This needs to use HCluster, not FCluster
@@ -92,7 +94,6 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     resize(src, tmpMat)
     cvtColor(tmpMat, tmpMat, COLOR_BGR2GRAY)
     detectEdges(tmpMat, tmpMat)
-//    val allLines = detectLines(tmpMat, eliminateDiagonalThresholdRads = 0.524)
     val allLines = detectLines(tmpMat)
 
     // Originally 400
@@ -100,12 +101,10 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
         return null
     }
 
-//    return cluster(allLines)
-
     val agglomerative = AverageAgglomerative(allLines, numClusters = 2)
     agglomerative.run()
 
-    var (lineGroup0, lineGroup1) = agglomerative.clusters
+    val (lineGroup0, lineGroup1) = agglomerative.clusters
             .map { cluster -> cluster.value.map { allLines[it] } }
             .also { if (it.size != 2) return null }
             .let{ Pair(it[0], it[1]) }
@@ -128,28 +127,29 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
     val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines).map { it.toMutableList() }.toMutableList()
 
     var bestNumInliers = 0
+    var bestRansacConfig: RANSACConfiguration? = null
     var epoch = 0
     val nIterations = 200
-    while (epoch <= nIterations || bestNumInliers < 30) {
+    while (bestNumInliers < 30 || epoch < nIterations) {
         epoch++
-        val rows = horizontalLines.indices.shuffled().take(2)
-        val cols = verticalLines.indices.shuffled().take(2)
+        val rowIndices = horizontalLines.indices.shuffled().take(2)
+        val colIndices = verticalLines.indices.shuffled().take(2)
 
-        var transformationMatrix = computeHomography(
+        val transformationMatrix = computeHomography(
             intersectionPoints = allIntersectionPoints,
-            rowIndex1 = rows[0],
-            rowIndex2 = rows[1],
-            colIndex1 = cols[0],
-            colIndex2 = cols[1]
+            rowIndex1 = rowIndices[0],
+            rowIndex2 = rowIndices[1],
+            colIndex1 = colIndices[0],
+            colIndex2 = colIndices[1]
         )
 
         var warpedPoints =
             warpPoints(allIntersectionPoints, transformationMatrix).map { it.toMutableList() }
                 .toMutableList()
-        print(warpedPoints)
+
         val (rowsAndColsToKeep, scales) = try {
             discardOutliers(warpedPoints)
-        } catch (e: InvalidFrameException) {
+        } catch (e: RANSACException) {
             continue
         }
 
@@ -167,11 +167,33 @@ fun findCorners(src: Mat): Pair<List<Line>, List<Line>>? {
                     .toMutableList()
             }.toMutableList()
 
-        val numInliers = warpedPoints.size * warpedPoints[0].size
+        val numInliers = try { warpedPoints.size * warpedPoints[0].size } catch (e: IndexOutOfBoundsException) { continue }
         if (numInliers > bestNumInliers){
+            for (i in warpedPoints.indices){
+                for (j in warpedPoints[i].indices){
+                    warpedPoints[i][j]?.let {
+                        warpedPoints[i][j] = Point(scales.first * it.x, scales.second * it.y)
+                    }
+                }
+            }
 
+            val ransacConfig = quantizePoints(warpedScaledPoints = warpedPoints, intersectionPoints)
+
+            val numInliers = try{ ransacConfig.scaledQuantizedPoints.first.size * ransacConfig.scaledQuantizedPoints.first[0].size } catch (e: IndexOutOfBoundsException){ continue }
+
+            if (numInliers > bestNumInliers){
+                bestNumInliers = numInliers
+                bestRansacConfig = ransacConfig
+            }
         }
+
+        if (epoch > 1000){
+            break
+        }
+
     }
+
+    print(bestRansacConfig)
 
     return Pair(
         horizontalLines,
