@@ -43,7 +43,7 @@ fun MainScreen(
 
     if (permissionStatus?.granted == true){
         CameraLayer(viewModel = viewModel)
-        LatticeOverlayLayer(viewModel = viewModel)
+        CornerPointOverlay(viewModel = viewModel)
     }
     if (permissionInitiallyRequested && permissionStatus?.denied == true) {
         PermissionLayer(onRequestCameraPermission)
@@ -65,51 +65,77 @@ private fun CameraLayer(
     )
 }
 
+//@Composable
+//fun LatticeOverlayLayer(
+//    viewModel: CameraPreviewViewModel
+//) {
+//    val latticeLines by viewModel
+//        .getLatticeLines().collectAsState(initial = null)
+//
+//    val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
+//
+//        Canvas(modifier = Modifier.fillMaxSize()) {
+//            val screenSize = Pair(size.width.toInt(), size.height.toInt())
+//            val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
+//            latticeLines?.let {
+//                drawSegments(
+//                    g = this,
+//                    segments = it.first.map { line ->
+//                        line.toSegment().cvToScreenCoords(screenSize, matSize)
+//                    },
+//                    color = Color.Red,
+//                    strokeWidth = 5f
+//                )
+//                drawSegments(
+//                    g = this,
+//                    segments = it.second.map { line ->
+//                        line.toSegment().cvToScreenCoords(screenSize, matSize)
+//                    },
+//                    color = Color.Green,
+//                    strokeWidth = 5f
+//                )
+//
+//                val latticePoints = it.first.flatMap { horizontal ->
+//                    it.second.mapNotNull { vertical ->
+//                        horizontal.intersection(vertical)
+//                    }
+//                }.map { point -> point.cvToScreenCoords(screenSize, matSize)
+//                }.map { point -> Offset(point.x, point.y) }
+//
+//                drawPoints(
+//                    latticePoints,
+//                    PointMode.Points,
+//                    Color.Blue,
+//                    12f
+//                )
+//            }
+//        }
+//}
+
 @Composable
-fun LatticeOverlayLayer(
+fun CornerPointOverlay(
     viewModel: CameraPreviewViewModel
 ) {
-    val latticeLines by viewModel
-        .getLatticeLines().collectAsState(initial = null)
+    val cornerPoints by viewModel
+        .getCorners().collectAsState(initial = null)
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val screenSize = Pair(size.width.toInt(), size.height.toInt())
-            val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
-            latticeLines?.let {
-                drawSegments(
-                    g = this,
-                    segments = it.first.map { line ->
-                        line.toSegment().cvToScreenCoords(screenSize, matSize)
-                    },
-                    color = Color.Red,
-                    strokeWidth = 5f
-                )
-                drawSegments(
-                    g = this,
-                    segments = it.second.map { line ->
-                        line.toSegment().cvToScreenCoords(screenSize, matSize)
-                    },
-                    color = Color.Green,
-                    strokeWidth = 5f
-                )
-
-                val latticePoints = it.first.flatMap { horizontal ->
-                    it.second.mapNotNull { vertical ->
-                        horizontal.intersection(vertical)
-                    }
-                }.map { point -> point.cvToScreenCoords(screenSize, matSize)
-                }.map { point -> Offset(point.x, point.y) }
-
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val screenSize = Pair(size.width.toInt(), size.height.toInt())
+        val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
+        cornerPoints?.filterNotNull()
+            ?.map { point -> point.cvToScreenCoords(screenSize, matSize) }
+            ?.map { point -> Offset(point.x, point.y) }
+            ?.let {
                 drawPoints(
-                    latticePoints,
-                    PointMode.Points,
-                    Color.Blue,
-                    12f
+                    it,
+                PointMode.Points,
+                Color.Blue,
+                12f
                 )
             }
-        }
+    }
 }
 
 fun drawSegments(g: DrawScope, segments: List<Segment>, color: Color, strokeWidth: Float) {

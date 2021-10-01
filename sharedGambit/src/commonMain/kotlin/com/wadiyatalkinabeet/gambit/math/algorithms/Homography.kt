@@ -3,7 +3,7 @@ package com.wadiyatalkinabeet.gambit.math.algorithms
 
 import com.wadiyatalkinabeet.gambit.cv.*
 
-fun computeHomography(intersectionPoints: List<List<Point?>>, rowIndex1: Int, rowIndex2: Int, colIndex1: Int, colIndex2: Int): Mat {
+fun computeHomography(intersectionPoints: Array<Array<Point?>>, rowIndex1: Int, rowIndex2: Int, colIndex1: Int, colIndex2: Int): Mat {
 
     val topLeft = intersectionPoints[rowIndex1][colIndex1]
     val topRight = intersectionPoints[rowIndex1][colIndex2]

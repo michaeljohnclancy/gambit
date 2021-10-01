@@ -9,6 +9,7 @@ import androidx.camera.core.Preview
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.skgmn.cameraxx.analyze
+import com.wadiyatalkinabeet.gambit.cv.Point
 import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.findCorners
 import com.wadiyatalkinabeet.gambit.cv.toMat
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
@@ -42,26 +43,24 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 
     //Close the model in the activity or similar using: neuralLAPS.close()
 
-//    @SuppressLint("UnsafeOptInUsageError")
-//    fun getLatticePoints(): Flow<List<android.graphics.Point>> {
-//        return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
-//            .map { imageProxy ->
-//                imageProxy.image?.yuvToRgba()?.let {
-//                    imageProxy.close()
-//                    cornerDetector.getLatticePoints(it)
-//                        .map { point -> Point(point.x.toInt(), point.y.toInt()) }
-//                }
-//            }.filterNotNull().flowOn(Dispatchers.IO)
-//    }
 
     @SuppressLint("UnsafeOptInUsageError")
-    fun getLatticeLines(): Flow<Pair<List<Line>, List<Line>>?> {
+    fun getCorners(): Flow<List<com.wadiyatalkinabeet.gambit.math.datastructures.Point?>?> {
         return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
             .map { imageProxy -> imageProxy.image?.toMat()?.also { imageProxy.close() } }
             .filterNotNull()
-            .map { mat -> withTimeoutOrNull(timeMillis = 10) { findCorners(mat) } }
+            .map { mat -> findCorners(mat) }
             .flowOn(Dispatchers.IO).shareIn(viewModelScope, SharingStarted.WhileSubscribed(), 0)
     }
+
+//    @SuppressLint("UnsafeOptInUsageError")
+//    fun getLatticeLines(): Flow<Pair<List<Line>, List<Line>>?> {
+//        return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
+//            .map { imageProxy -> imageProxy.image?.toMat()?.also { imageProxy.close() } }
+//            .filterNotNull()
+//            .map { mat -> withTimeoutOrNull(timeMillis = 10000) { findCorners(mat) } }
+//            .flowOn(Dispatchers.IO).shareIn(viewModelScope, SharingStarted.WhileSubscribed(), 0)
+//    }
 
     private fun newImageAnalysisUseCase() = ImageAnalysis.Builder()
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
