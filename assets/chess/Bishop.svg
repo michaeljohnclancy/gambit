@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 135.46666 135.46666"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c4e8f9ed74, 2021-05-24)"
+   sodipodi:docname="Bishop.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="true"
+     units="px"
+     width="512px"
+     inkscape:zoom="0.54488788"
+     inkscape:cx="96.350097"
+     inkscape:cy="456.05712"
+     inkscape:window-width="1920"
+     inkscape:window-height="1040"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-object-midpoints="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid9"
+       spacingx="4.2333331"
+       spacingy="4.2333331"
+       empspacing="4" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path9983"
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:3.99999;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 256 32 A 39.999995 39.999995 0 0 0 216 72 A 39.999995 39.999995 0 0 0 225.48828 97.824219 C 187.62861 122.25468 128 169.3898 128 224 C 128 303.99999 176 304 176 304 C 176 304 134.65842 359.42979 144 384 C 153.34158 408.57022 208 416 208 416 C 208 416 123.06797 407.80447 96 416 C 68.932033 424.19553 48 448 48 448 L 64 480 L 112 464 C 112 464 207.70461 448 256 448 C 304.29539 448 400 464 400 464 L 448 480 L 464 448 C 464 448 443.06796 424.19553 416 416 C 388.93204 407.80447 304 416 304 416 C 304 416 358.65842 408.57022 368 384 C 377.34158 359.42978 336 304 336 304 C 336 304 384 303.99999 384 224 C 384 169.3898 324.37138 122.25468 286.51172 97.824219 A 39.999995 39.999995 0 0 0 296 72 A 39.999995 39.999995 0 0 0 256 32 z "
+       transform="scale(0.26458333)" />
+  </g>
+</svg>

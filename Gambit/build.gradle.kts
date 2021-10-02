@@ -36,6 +36,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:$activityComposeVersion")
     // Integration with ViewModels
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleViewModelComposeVersion")
+    implementation("androidx.compose.runtime:runtime-livedata:$composeVersion")
     //Integration between Compose and cameraX
 //    implementation("com.github.skgmn:StartActivityX:1.1.0")
 

@@ -12,6 +12,8 @@ import android.Manifest
 import androidx.lifecycle.lifecycleScope
 import com.github.skgmn.startactivityx.PermissionRequest
 import com.github.skgmn.startactivityx.requestPermissions
+import com.wadiyatalkinabeet.gambit.android.chess.GameLogComposable
+import com.wadiyatalkinabeet.gambit.chess.GameLogViewModel
 import kotlinx.coroutines.launch
 
 @ExperimentalAnimationApi
@@ -22,15 +24,16 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CameraViewTheme {
-               MainScreen(
-                   viewModel = viewModel,
-                   permissionStatusFlow = listenPermissionStatus(Manifest.permission.CAMERA),
-                   onRequestCameraPermission = {
-                       lifecycleScope.launch {
-                           requestCameraPermission()
-                       }
-                   },
-               )
+               GameLogComposable(GameLogViewModel())
+//               MainScreen(
+//                   viewModel = viewModel,
+//                   permissionStatusFlow = listenPermissionStatus(Manifest.permission.CAMERA),
+//                   onRequestCameraPermission = {
+//                       lifecycleScope.launch {
+//                           requestCameraPermission()
+//                       }
+//                   },
+//               )
             }
         }
 
