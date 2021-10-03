@@ -9,6 +9,10 @@ import com.github.skgmn.startactivityx.listenPermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import com.wadiyatalkinabeet.gambit.android.ui.theme.CameraViewTheme
 import android.Manifest
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.MaterialTheme
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.github.skgmn.startactivityx.PermissionRequest
 import com.github.skgmn.startactivityx.requestPermissions
@@ -24,7 +28,10 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CameraViewTheme {
-               GameLogComposable(GameLogViewModel())
+                Box(
+                    Modifier.background(MaterialTheme.colors.background)
+                ) {
+                GameLogComposable(GameLogViewModel())
 //               MainScreen(
 //                   viewModel = viewModel,
 //                   permissionStatusFlow = listenPermissionStatus(Manifest.permission.CAMERA),
@@ -34,6 +41,7 @@ class MainActivity : FragmentActivity() {
 //                       }
 //                   },
 //               )
+                }
             }
         }
 

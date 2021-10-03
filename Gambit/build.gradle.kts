@@ -12,7 +12,8 @@ dependencies {
 //    val activityComposeVersion = "1.4.0-alpha02"
 //    val lifecycleViewModelComposeVersion = "2.4.0-beta01"
 
-    val composeVersion = "1.0.2"
+//    val composeVersion = "1.0.2"
+    val composeVersion = "1.1.0-alpha05"
     val activityComposeVersion = "1.3.1"
     val lifecycleViewModelComposeVersion = "2.4.0-beta01"
 

@@ -29,6 +29,7 @@ class GameLogViewModel: ViewModel() {
     }
 
     fun setMove(i: Int) {
-        focusedMove.value = i
+        if (i in 0..gameLog.moves.size)
+            focusedMove.value = i
     }
 }
