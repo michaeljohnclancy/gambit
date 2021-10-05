@@ -12,23 +12,35 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.FirstPage
 import androidx.compose.material.icons.rounded.LastPage
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.navigationBarsPadding
+import com.google.accompanist.insets.statusBarsPadding
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.wadiyatalkinabeet.gambit.chess.GameLogViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.round
 
 @Composable
 fun GameLogComposable(viewModel: GameLogViewModel) {
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = MaterialTheme.colors.isLight
+    SideEffect {
+        systemUiController.setSystemBarsColor(Color.Transparent, darkIcons = useDarkIcons)
+    }
+
     val focusedMove by viewModel.focusedMove.observeAsState()
     val scrollState = rememberScrollState()
 
@@ -55,20 +67,20 @@ fun GameLogComposable(viewModel: GameLogViewModel) {
         else 8.dp
     )
 
-    val controlsElev by animateDpAsState(
-        if (scrollState.value == scrollState.maxValue) 3.dp
-        else 8.dp
-    )
-
-    Column() {
+    Column(
+        Modifier.statusBarsPadding()
+            .padding(0.dp, 4.dp, 0.dp, 0.dp)
+    ) {
         // Game Board
         Surface(
             elevation = boardElev,
             color = MaterialTheme.colors.surface,
-            modifier = Modifier.zIndex(1f),
+            modifier = Modifier.zIndex(1f)
         ) {
             BoardStateComposable(
-                viewModel.gameLog.getStateAtMove(focusedMove!!)
+                viewModel.gameLog.getStateAtMove(focusedMove!!),
+                if (focusedMove!! > 0) viewModel.gameLog.moves[focusedMove!! - 1]
+                else null
             )
         }
 
@@ -81,7 +93,7 @@ fun GameLogComposable(viewModel: GameLogViewModel) {
                     .verticalScroll(scrollState)
                     .fillMaxHeight(),
             ) {
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(1.dp))
 
                 MoveRow(viewModel, focusedMove!!, 0, "Game starts")
                 viewModel.gameLog.moves.forEachIndexed{ i, move ->
@@ -92,7 +104,8 @@ fun GameLogComposable(viewModel: GameLogViewModel) {
                     MoveRow(viewModel, focusedMove!!, i+1, move.toString())
                 }
 
-                Spacer(Modifier.height(125.dp))
+                val navbarHeight = LocalWindowInsets.current.navigationBars.bottom.dp
+                Spacer(Modifier.height(94.dp + navbarHeight))
             }
 
             // Controls
@@ -101,9 +114,11 @@ fun GameLogComposable(viewModel: GameLogViewModel) {
                 color = MaterialTheme.colors.surface,
                 modifier = Modifier
                     .zIndex(1f)
-                    .alpha(0.85f),
+                    .alpha(0.85f)
             ) {
-                Column() {
+                Column(
+                    Modifier.navigationBarsPadding()
+                ) {
                     Divider(thickness = 1.dp)
 
                     Slider(

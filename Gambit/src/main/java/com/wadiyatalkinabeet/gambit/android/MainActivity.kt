@@ -13,9 +13,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.github.skgmn.startactivityx.PermissionRequest
 import com.github.skgmn.startactivityx.requestPermissions
+import com.google.accompanist.insets.ProvideWindowInsets
 import com.wadiyatalkinabeet.gambit.android.chess.GameLogComposable
 import com.wadiyatalkinabeet.gambit.chess.GameLogViewModel
 import kotlinx.coroutines.launch
@@ -26,21 +28,24 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             CameraViewTheme {
-                Box(
-                    Modifier.background(MaterialTheme.colors.background)
-                ) {
-                GameLogComposable(GameLogViewModel())
-//               MainScreen(
-//                   viewModel = viewModel,
-//                   permissionStatusFlow = listenPermissionStatus(Manifest.permission.CAMERA),
-//                   onRequestCameraPermission = {
-//                       lifecycleScope.launch {
-//                           requestCameraPermission()
-//                       }
-//                   },
-//               )
+                ProvideWindowInsets {
+                    Box(
+                        Modifier.background(MaterialTheme.colors.background)
+                    ) {
+                        GameLogComposable(GameLogViewModel())
+//                       MainScreen(
+//                           viewModel = viewModel,
+//                           permissionStatusFlow = listenPermissionStatus(Manifest.permission.CAMERA),
+//                           onRequestCameraPermission = {
+//                               lifecycleScope.launch {
+//                                   requestCameraPermission()
+//                               }
+//                           },
+//                       )
+                    }
                 }
             }
         }
