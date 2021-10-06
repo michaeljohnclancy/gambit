@@ -16,13 +16,14 @@ import kotlin.math.*
 
 
 fun resize(
-    src: Mat
+    src: Mat,
+    horizontalSize: Double = 1200.0
 ): Pair<Mat, Double> {
     val w: Double = src.width().toDouble()
     val h: Double = src.height().toDouble()
-    val scale: Double = 1200.0 / w
+    val scale: Double = horizontalSize / w
     val dst = Mat()
-    resize(src, dst, Size(1200.0, h * scale))
+    resize(src, dst, Size(horizontalSize, h * scale))
     return Pair(dst, scale)
 }
 
@@ -113,40 +114,47 @@ fun makeBorderMat(size: Size, type: Int, borderThickness: Int = 3): Mat{
     return bordersMat
 }
 
-suspend fun findCorners(src: Mat): List<com.wadiyatalkinabeet.gambit.math.datastructures.Point?>? {
-    val (grayscaleMat, scale) = resize(src)
+fun findCorners(src: Mat): List<com.wadiyatalkinabeet.gambit.math.datastructures.Point?>? {
+    //Resize
+    val (grayscaleMat, scale) = resize(src, 1200.0)
+
+    //Grayscale
     cvtColor(grayscaleMat, grayscaleMat, COLOR_BGR2GRAY)
 
-    // Line Detection followed by clustering into horizontal and vertical lines
-    // Diagonal lines are by by default not removed, but ChessCog seems to have this enabled.
-    var (horizontalLines, verticalLines) = withTimeoutOrNull(timeMillis = 1000) {
-        try {
-            clusterLines(
-                detectLines(grayscaleMat, eliminateDiagonals = false)
-            )
-        } catch (e: ClusteringException) {
-            null
-        }
+    // Detect all lines
+    val detectedLines = detectLines(grayscaleMat, eliminateDiagonals = true)
+        .also { if (it.size > 800) return null }
+
+    // Cluster lines into vertical and horizontal
+    var (horizontalLines, verticalLines) = try {
+        clusterLines(detectedLines)
+    } catch (e: ClusteringException) {
+        null
     } ?: run { return null }
 
+    // Eliminate similar lines within groups
     horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
     verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
-
     if (horizontalLines.size <= 2 || verticalLines.size <= 2){
         return null
     }
 
+    // Find intersections between remaining points
     val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
+    if (allIntersectionPoints.size * allIntersectionPoints[0].size < 4){
+        return null
+    }
 
-    val ransacConfiguration = withTimeoutOrNull(timeMillis = 1000){
-        try {
-            runRANSAC(allIntersectionPoints)
-        } catch (e: RANSACException) {
-            null
-        }
+    val ransacConfiguration = try {
+        runRANSAC(allIntersectionPoints)
+    } catch (e: RANSACException) {
+        null
     } ?: run { return null }
 
-    if (ransacConfiguration.intersectionPoints.size*ransacConfiguration.intersectionPoints[0].size < 4){ return null }
+    if (ransacConfiguration.intersectionPoints.size*ransacConfiguration.intersectionPoints[0].size < 4){
+        return null
+    }
+
     val transformationMat = findHomography(
             MatOfPoint2f(*ransacConfiguration.intersectionPoints.flatten().filterNotNull().toTypedArray()),
             MatOfPoint2f(*ransacConfiguration.quantizedPoints.flatten().filterNotNull().toTypedArray())

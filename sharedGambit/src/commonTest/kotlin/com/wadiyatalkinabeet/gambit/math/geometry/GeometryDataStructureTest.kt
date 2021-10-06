@@ -12,16 +12,16 @@ internal class GeometryDataStructureTest {
 
     @Test
     fun isSimilarTo() {
-        val segment1 = Segment(50.0, 130.0, 90.0, 130.0)
-        val segment2 = Segment(100.0, 130.0, 120.0, 132.0)
-        val segment3 = Segment(50.0, 130.0, 5.0, 20.0)
+        val segment1 = Segment(50.0f, 130.0f, 90.0f, 130.0f)
+        val segment2 = Segment(100.0f, 130.0f, 120.0f, 132.0f)
+        val segment3 = Segment(50.0f, 130.0f, 5.0f, 20.0f)
         assertTrue(segment1.isSimilarTo(segment2))
         assertTrue(!segment1.isSimilarTo(segment3))
     }
 
     @Test
     fun ifPointsGeneratedFromSegment_thenPointsLieWithinTheSegment() {
-        val segment = Segment(50.0, 130.0, 90.0, 130.0)
+        val segment = Segment(50.0f, 130.0f, 90.0f, 130.0f)
         val pointsOnLine = segment.toPoints(10)
         pointsOnLine.forEach { assertTrue( isPointOnSegment(it, segment) ) }
     }

@@ -49,7 +49,8 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
         return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
             .map { imageProxy -> imageProxy.image?.toMat()?.also { imageProxy.close() } }
             .filterNotNull()
-            .map { mat -> findCorners(mat) }
+            .map { mat -> withTimeoutOrNull(5000) { findCorners(mat) } }
+            .filterNotNull()
             .flowOn(Dispatchers.IO).shareIn(viewModelScope, SharingStarted.WhileSubscribed(), 0)
     }
 

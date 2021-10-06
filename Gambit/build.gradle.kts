@@ -40,11 +40,9 @@ dependencies {
 //    implementation("com.github.skgmn:StartActivityX:1.1.0")
 
     implementation("com.github.skgmn:cameraxx-composable:0.6.1")
-    //StartX convenience functions
-    // UI Tests
-    //TODO: Try move opencv2 code and tensorflow code out of this area and into the shared modules.
 
-    implementation(project(":libraries:startactivityx"))
+    //activity convenience functions
+    implementation("com.github.skgmn:startactivityx:1.2.0")
 
     implementation("com.github.h0tk3y.geometry:geometry:v0.1")
 

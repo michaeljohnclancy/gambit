@@ -1,8 +1,17 @@
 package com.wadiyatalkinabeet.gambit.math.algorithms
 
-import com.wadiyatalkinabeet.gambit.cv.Mat
-import com.wadiyatalkinabeet.gambit.cv.Point
-import com.wadiyatalkinabeet.gambit.cv.Size
+import com.wadiyatalkinabeet.gambit.cv.*
+import com.wadiyatalkinabeet.gambit.math.ones
+import kotlinx.coroutines.withTimeoutOrNull
+import org.jetbrains.kotlinx.multik.api.empty
+import org.jetbrains.kotlinx.multik.api.mk
+import org.jetbrains.kotlinx.multik.api.ndarray
+import org.jetbrains.kotlinx.multik.api.ndarrayOf
+import org.jetbrains.kotlinx.multik.ndarray.data.*
+import org.jetbrains.kotlinx.multik.ndarray.operations.div
+import org.jetbrains.kotlinx.multik.ndarray.operations.inplace
+import org.jetbrains.kotlinx.multik.ndarray.operations.map
+import org.jetbrains.kotlinx.multik.ndarray.operations.math
 import java.lang.IndexOutOfBoundsException
 import java.lang.NullPointerException
 import java.util.logging.XMLFormatter
@@ -69,6 +78,7 @@ private fun discardOutliers(
                 warpedPoints[i][j]?.let {
                     val scaledX = it.x * ascendingScales[k]
                     val scaledY = it.y * ascendingScales[k]
+                    //TODO Cannot round NaN value (roundToInt)
                     val diffX = abs(scaledX.roundToInt() - scaledX)
                     val diffY = abs(scaledY.roundToInt() - scaledY)
 
@@ -114,32 +124,31 @@ private fun discardOutliers(
 }
 
 private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectionPoints: Array<Array<Point?>>): RANSACConfiguration{
-    val xCountAlongCols = mutableMapOf<Int, Double>()
-    val yCountAlongRows = mutableMapOf<Int, Double>()
+    val xSumAlongCols = mutableMapOf<Int, Double>()
+    val ySumAlongRows = mutableMapOf<Int, Double>()
     for (i in warpedScaledPoints.indices){
         for (j in warpedScaledPoints[i].indices){
             warpedScaledPoints[i][j]?.let{
                 // This is summing over all i
-                xCountAlongCols[j] = (xCountAlongCols[j] ?: 0.0) + it.x
-
+                xSumAlongCols[j] = (xSumAlongCols[j] ?: 0.0) + it.x
                 // This is summing over all j
-                yCountAlongRows[i] = (yCountAlongRows[i] ?: 0.0) + it.y
+                ySumAlongRows[i] = (ySumAlongRows[i] ?: 0.0) + it.y
             }
         }
     }
 
-    var colXs = xCountAlongCols.map { (it.value / warpedScaledPoints.size.toDouble()).toInt() }
-    var rowYs = yCountAlongRows.map { (it.value / warpedScaledPoints[0].size.toDouble()).toInt() }
+    var colXs = xSumAlongCols.map { (it.value / warpedScaledPoints.size.toDouble()).roundToInt() }
+    var rowYs = ySumAlongRows.map { (it.value / warpedScaledPoints[0].size.toDouble()).roundToInt() }
 
     val distinctCols = colXs.distinctIndexed()
     val distinctRows = rowYs.distinctIndexed()
 
-    colXs = distinctCols.first
-    rowYs = distinctRows.first
-
     var filteredIntersectionPoints = intersectionPoints
-        .filterIndexed { index, _ -> distinctRows.second.contains(index) }
-        .map { it.filterIndexed { index, _ -> distinctCols.second.contains(index) }.toTypedArray() }.toTypedArray()
+        .sliceArray(distinctRows.first)
+        .map { it.sliceArray(distinctCols.first) }.toTypedArray()
+
+    colXs = distinctCols.second
+    rowYs = distinctRows.second
 
     var xMin = colXs.minOrNull() ?: run { throw RANSACException("Not enough information") }
     var xMax = colXs.maxOrNull() ?: run { throw RANSACException("Not enough information") }
@@ -155,16 +164,16 @@ private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectio
         yMax -= 1
         yMin += 1
     }
+
     val colMask = colXs.map { (it >= xMin) && (it <= xMax) }
     val rowMask = rowYs.map { (it >= yMin) && (it <= yMax) }
 
     colXs = colXs.filterIndexed { index, _ -> colMask[index] }
-    rowYs = rowYs.filterIndexed {  index, _ -> rowMask[index] }
+    rowYs = rowYs.filterIndexed { index, _ -> rowMask[index] }
 
     filteredIntersectionPoints = filteredIntersectionPoints
         .filterIndexed { index, _ -> rowMask[index] }
         .map { it.filterIndexed { index, _ -> colMask[index] }.toTypedArray() }.toTypedArray()
-
 
     val quantizedPointGrid = meshGrid(colXs.map { it.toFloat() }.toFloatArray(), rowYs.map { it.toFloat() }.toFloatArray() )
     val quantizedPoints = Array(quantizedPointGrid.first.size) {Array<Point?>(quantizedPointGrid.first[0].size) { null } }
@@ -191,27 +200,34 @@ private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectio
         intersectionPoints = filteredIntersectionPoints,
         warpedImageSize = warpedImageSize
     )
-
 }
 
 fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACConfiguration? {
     var bestNumInliers = 0
     var bestRansacConfig: RANSACConfiguration? = null
     var epoch = 0
-    while (bestNumInliers < 30) {
-        val rowIndices = intersectionPoints.indices.shuffled().take(2)
-        val colIndices = intersectionPoints[0].indices.shuffled().take(2)
+    while (bestNumInliers < 30 || epoch < 200) {
 
-        val transformationMat = computeHomography(
-            intersectionPoints = intersectionPoints,
-            rowIndex1 = rowIndices[0],
-            rowIndex2 = rowIndices[1],
-            colIndex1 = colIndices[0],
-            colIndex2 = colIndices[1]
+        val rowIndices = intersectionPoints.indices.shuffled().take(2).sorted()
+        val colIndices = intersectionPoints[0].indices.shuffled().take(2).sorted()
+
+        val homographyMat = findHomography(
+            MatOfPoint2f(
+                intersectionPoints[rowIndices[0]][colIndices[0]],
+                intersectionPoints[rowIndices[0]][colIndices[1]],
+                intersectionPoints[rowIndices[1]][colIndices[1]],
+                intersectionPoints[rowIndices[1]][colIndices[0]],
+            ),
+            MatOfPoint2f(
+                Point(0.0, 0.0), Point(1.0, 0.0),
+                Point(1.0, 1.0), Point(0.0, 1.0)
+            )
         )
 
-        var warpedPoints = warpPoints(intersectionPoints, transformationMat)
+        // Warp all other points using this homography matrix
+        var warpedPoints = warpPoints(intersectionPoints, homographyMat)
 
+        // Count how many inliers there are for variety of scales, choose scales with most inliers
         val (rowsAndColsToKeep, scales) = try {
             discardOutliers(warpedPoints)
         } catch (e: RANSACException) {
@@ -219,28 +235,17 @@ fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACConfiguration? {
         }
 
         warpedPoints = warpedPoints
-            .filterIndexed { i, _ -> rowsAndColsToKeep.first.contains(i) }
-            .map {
-                it.filterIndexed { j, _ -> rowsAndColsToKeep.second.contains(j) }.toTypedArray()
-            }.toTypedArray()
+            .sliceArray(rowsAndColsToKeep.first)
+            .map { it.sliceArray(rowsAndColsToKeep.second) }.toTypedArray()
 
         val filteredIntersectionPoints = intersectionPoints
-            .filterIndexed { i, _ -> rowsAndColsToKeep.first.contains(i) }
-            .map {
-                it.filterIndexed { j, _ -> rowsAndColsToKeep.second.contains(j) }.toTypedArray()
-            }.toTypedArray()
+            .sliceArray(rowsAndColsToKeep.first)
+            .map { it.sliceArray(rowsAndColsToKeep.second) }.toTypedArray()
 
         var numInliers = try { warpedPoints.size * warpedPoints[0].size } catch (e: IndexOutOfBoundsException) { continue }
         if (numInliers > bestNumInliers){
-            for (i in warpedPoints.indices){
-                for (j in warpedPoints[i].indices){
-                    warpedPoints[i][j]?.let {
-                        warpedPoints[i][j] = Point(scales.first * it.x, scales.second * it.y)
-                    }
-                }
-            }
-
-            val ransacConfig = quantizePoints(warpedScaledPoints = warpedPoints, filteredIntersectionPoints)
+            scalePoints(warpedPoints, xScale = scales.first, yScale = scales.second)
+            val ransacConfig = quantizePoints(warpedScaledPoints = warpedPoints, intersectionPoints = filteredIntersectionPoints)
 
             numInliers = try{
                 ransacConfig.quantizedPoints.size *
@@ -253,18 +258,29 @@ fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACConfiguration? {
             }
         }
         epoch++
+        if (epoch > 1000){
+            break
+        }
     }
-
-
     return bestRansacConfig
 }
 
-fun <T> List<T>.distinctIndexed(): Pair<List<T>, List<Int>> =
+private fun scalePoints(points: Array<Array<Point?>>, xScale: Int, yScale: Int){
+    for (i in points.indices){
+        for (j in points[i].indices){
+            points[i][j]?.let {
+                points[i][j] = Point(xScale * it.x, yScale * it.y)
+            }
+        }
+    }
+}
+
+fun <T> List<T>.distinctIndexed(): Pair<List<Int>, List<T>> =
     this.withIndex().distinctBy { it.value }
         .let { indexedDistinctVals ->
             Pair(
-                indexedDistinctVals.map { it.value },
-                indexedDistinctVals.map{ it.index }
+                indexedDistinctVals.map{ it.index },
+                indexedDistinctVals.map { it.value }
             )
         }
 

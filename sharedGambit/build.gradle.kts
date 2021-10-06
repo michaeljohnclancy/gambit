@@ -36,7 +36,6 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                val geokVersion = "1.1.0"
                 implementation("com.github.h0tk3y.geometry:geometry:v0.1")
                 implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
                 implementation("com.google.android.play:core-ktx:1.8.1")
@@ -68,12 +67,12 @@ kotlin {
 
                 implementation(project(":libraries:opencv-android"))
 
-                implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-beta01")
+                implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-rc01")
 
                 implementation("androidx.camera:camera-core:$cameraxVersion")
                 implementation("androidx.camera:camera-camera2:$cameraxVersion")
                 implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-                implementation("androidx.camera:camera-view:1.0.0-alpha28")
+                implementation("androidx.camera:camera-view:1.0.0-alpha29")
 
                 implementation("com.github.skgmn:cameraxx:0.6.0")
                 implementation("androidx.test:core-ktx:1.4.0")
@@ -90,7 +89,6 @@ kotlin {
 
                 implementation("androidx.test:runner:1.4.0")
                 implementation("androidx.test:rules:1.4.0")
-
             }
 
             tasks.withType<Test> {
