@@ -46,7 +46,6 @@ fun detectLines(
     return allLines
 }
 
-//TODO This needs to use HCluster, not FCluster
 fun fCluster(lines: List<Line>, maxAngle: Double = PI/180): Pair<List<Line>, List<Line>>? {
     val a = FCluster.apply(lines.size) { index1, index2 ->
         lines[index1].angleTo(lines[index2]) <= maxAngle
@@ -116,14 +115,11 @@ fun makeBorderMat(size: Size, type: Int, borderThickness: Int = 3): Mat{
 
 fun findCorners(src: Mat): List<com.wadiyatalkinabeet.gambit.math.datastructures.Point?>? {
     //Resize
-    val (grayscaleMat, scale) = resize(src, 1200.0)
-
-    //Grayscale
-    cvtColor(grayscaleMat, grayscaleMat, COLOR_BGR2GRAY)
+    val (grayscaleMat, scale) = resize(src)
 
     // Detect all lines
-    val detectedLines = detectLines(grayscaleMat, eliminateDiagonals = true)
-        .also { if (it.size > 800) return null }
+    val detectedLines = detectLines(grayscaleMat, eliminateDiagonals = false)
+//        .also { if (it.size > 800) return null }
 
     // Cluster lines into vertical and horizontal
     var (horizontalLines, verticalLines) = try {

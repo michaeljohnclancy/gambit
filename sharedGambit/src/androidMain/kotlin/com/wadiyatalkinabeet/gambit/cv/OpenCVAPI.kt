@@ -120,7 +120,20 @@ actual fun loadChessboardExampleImage(): Mat {
     return imread("src/commonTest/res/example_chessboard_images/1.jpg")
 }
 
-fun Image.toMat(): Mat {
+fun Image.toMat(grayscale: Boolean = false): Mat {
+    return if (grayscale) toGrayscaleMat() else toRGBMat()
+}
+
+fun Image.toGrayscaleMat(): Mat {
+    val grayscaleByteArray = ByteArray(width * height)
+    planes[0].buffer.get(grayscaleByteArray)
+
+    val grayscaleMat = Mat(height, width, CvType.CV_8UC1)
+    grayscaleMat.put(0, 0, grayscaleByteArray)
+    return grayscaleMat
+}
+
+fun Image.toRGBMat(): Mat {
     val rgbaMat = Mat()
 
     if (format == ImageFormat.YUV_420_888

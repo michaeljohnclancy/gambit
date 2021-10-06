@@ -9,10 +9,8 @@ import androidx.camera.core.Preview
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.skgmn.cameraxx.analyze
-import com.wadiyatalkinabeet.gambit.cv.Point
 import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.findCorners
 import com.wadiyatalkinabeet.gambit.cv.toMat
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withTimeoutOrNull
@@ -43,14 +41,12 @@ class CameraPreviewViewModel(application: Application) : AndroidViewModel(applic
 
     //Close the model in the activity or similar using: neuralLAPS.close()
 
-
     @SuppressLint("UnsafeOptInUsageError")
     fun getCorners(): Flow<List<com.wadiyatalkinabeet.gambit.math.datastructures.Point?>?> {
         return _imageAnalysisUseCaseState.value.analyze().flowOn(Dispatchers.Default)
-            .map { imageProxy -> imageProxy.image?.toMat()?.also { imageProxy.close() } }
+            .map { imageProxy -> imageProxy.image?.toMat(grayscale = true)?.also { imageProxy.close() } }
             .filterNotNull()
             .map { mat -> withTimeoutOrNull(5000) { findCorners(mat) } }
-            .filterNotNull()
             .flowOn(Dispatchers.IO).shareIn(viewModelScope, SharingStarted.WhileSubscribed(), 0)
     }
 
