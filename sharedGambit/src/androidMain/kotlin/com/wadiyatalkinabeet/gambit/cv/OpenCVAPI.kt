@@ -124,7 +124,7 @@ fun Image.toMat(grayscale: Boolean = false): Mat {
     return if (grayscale) toGrayscaleMat() else toRGBMat()
 }
 
-fun Image.toGrayscaleMat(): Mat {
+private fun Image.toGrayscaleMat(): Mat {
     val grayscaleByteArray = ByteArray(width * height)
     planes[0].buffer.get(grayscaleByteArray)
 
@@ -133,7 +133,7 @@ fun Image.toGrayscaleMat(): Mat {
     return grayscaleMat
 }
 
-fun Image.toRGBMat(): Mat {
+private fun Image.toRGBMat(): Mat {
     val rgbaMat = Mat()
 
     if (format == ImageFormat.YUV_420_888
@@ -202,4 +202,16 @@ fun Image.toRGBMat(): Mat {
     }
 
     return rgbaMat
+}
+
+fun resize(
+    src: Mat,
+    horizontalSize: Double = 1200.0
+): Pair<Mat, Double> {
+    val w: Double = src.width().toDouble()
+    val h: Double = src.height().toDouble()
+    val scale: Double = horizontalSize / w
+    val dst = Mat()
+    resize(src, dst, Size(horizontalSize, h * scale))
+    return Pair(dst, scale)
 }
