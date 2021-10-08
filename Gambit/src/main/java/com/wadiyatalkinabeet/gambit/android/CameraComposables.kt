@@ -23,6 +23,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
+import com.wadiyatalkinabeet.gambit.cv.ImageAnalysisResult
+import com.wadiyatalkinabeet.gambit.cv.Point
 import com.wadiyatalkinabeet.gambit.cv.cvToScreenCoords
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
@@ -43,7 +45,7 @@ fun MainScreen(
 
     if (permissionStatus?.granted == true){
         CameraLayer(viewModel = viewModel)
-        CornerPointOverlay(viewModel = viewModel)
+        ImageAnalysisOverlay(viewModel = viewModel)
     }
     if (permissionInitiallyRequested && permissionStatus?.denied == true) {
         PermissionLayer(onRequestCameraPermission)
@@ -113,29 +115,43 @@ private fun CameraLayer(
 //}
 
 @Composable
-fun CornerPointOverlay(
+fun ImageAnalysisOverlay(
     viewModel: CameraPreviewViewModel
 ) {
-    val cornerPoints by viewModel
-        .getCorners().collectAsState(initial = null)
+    val imageAnalysisResult by viewModel
+        .getImageAnalysisResult().collectAsState(initial = null)
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         val screenSize = Pair(size.width.toInt(), size.height.toInt())
         val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
-        cornerPoints?.filterNotNull()
-            ?.map { point -> point.cvToScreenCoords(screenSize, matSize) }
-            ?.map { point -> Offset(point.x, point.y) }
-            ?.let {
-                drawPoints(
-                    it,
+
+        imageAnalysisResult?.let {
+            when (it){
+                is ImageAnalysisResult.Success -> {
+                    it.imageAnalysisState
+                    it.imageAnalysisState.cornerPoints?.run { drawPointOverlay(this, screenSize, matSize) }
+                }
+                is ImageAnalysisResult.Failure -> {
+                }
+            }
+        }
+
+    }
+}
+
+fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>, screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>) {
+    cornerPoints.map { point -> point.cvToScreenCoords(screenSize, matSize) }
+        .map { point -> Offset(point.x, point.y) }
+        .let {
+            drawPoints(
+                it,
                 PointMode.Points,
                 Color.Blue,
                 12f
-                )
-            }
-    }
+            )
+        }
 }
 
 fun drawSegments(g: DrawScope, segments: List<Segment>, color: Color, strokeWidth: Float) {

@@ -28,8 +28,6 @@ dependencies {
     // Material design icons
     implementation("androidx.compose.material:material-icons-core:$composeVersion")
     implementation("androidx.compose.material:material-icons-extended:$composeVersion")
-    // Integration with observables
-//    implementation("androidx.compose.runtime:runtime-livedata:$composeVersion")
     // Animations
     implementation("androidx.compose.animation:animation:$composeVersion")
     // Integration with activities
@@ -37,12 +35,9 @@ dependencies {
     // Integration with ViewModels
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleViewModelComposeVersion")
     //Integration between Compose and cameraX
-//    implementation("com.github.skgmn:StartActivityX:1.1.0")
 
-    implementation("com.github.skgmn:cameraxx-composable:0.6.1")
-
-    //activity convenience functions
     implementation("com.github.skgmn:startactivityx:1.2.0")
+    implementation("com.github.skgmn:cameraxx-composable:0.6.1")
 
     implementation("com.github.h0tk3y.geometry:geometry:v0.1")
 

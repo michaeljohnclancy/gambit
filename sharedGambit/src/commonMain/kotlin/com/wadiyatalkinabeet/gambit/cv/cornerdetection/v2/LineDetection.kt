@@ -38,16 +38,15 @@ fun eliminateSimilarLines(lines: List<Line>, perpendicularLines: List<Line>): Li
 }
 
 fun clusterLines(lines: List<Line>): Pair<List<Line>, List<Line>> {
-    val (lineGroup0, lineGroup1) =
-        AverageAgglomerative(lines, numClusters = 2).runClustering()
-            .map { cluster -> cluster.value.map { lines[it] } }
-            .let{ Pair(it[0], it[1]) }
-
-    val averageAngleToYAxisGroup0 = lineGroup0.map { it.angleTo(Line(0.0f,0.0f)) }.average()
-    val averageAngleToYAxisGroup1 = lineGroup1.map { it.angleTo(Line(0.0f,0.0f)) }.average()
-
-    return if (averageAngleToYAxisGroup0 > averageAngleToYAxisGroup1) Pair(lineGroup0, lineGroup1)
-    else Pair(lineGroup1, lineGroup0)
+    return AverageAgglomerative(lines, numClusters = 2).runClustering()
+        .map { cluster -> cluster.value.map { lines[it] } }
+        .let {
+            val averageAngleToYAxisGroup0 = it[0].map { x -> x.angleTo(Line(0.0f,0.0f)) }.average()
+            val averageAngleToYAxisGroup1 = it[1].map { x -> x.angleTo(Line(0.0f,0.0f)) }.average()
+            if (averageAngleToYAxisGroup0 > averageAngleToYAxisGroup1)
+            { Pair(it[0], it[1]) }
+            else { Pair(it[1], it[0]) }
+        }
 }
 
 fun detectLines(

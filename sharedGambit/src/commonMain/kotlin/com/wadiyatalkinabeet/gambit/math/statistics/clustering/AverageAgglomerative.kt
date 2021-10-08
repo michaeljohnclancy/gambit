@@ -10,6 +10,7 @@ class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
     private val clusters = mutableMapOf<Int, MutableSet<Int>>()
 
     init {
+        require(lines.size >= 2)
         lines.indices.forEach { clusters[it] = mutableSetOf(it) }
         updateDistanceMatrix()
     }
@@ -20,16 +21,11 @@ class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
                 .minByOrNull { clusterDistanceMatrix.getValue(it) }
                 ?.let {
                 clusters[it.last()]?.forEach { clusterMemberIdx -> clusters[it.first()]?.add(clusterMemberIdx) }
-
                 clusters.remove(it.last())
-
                 updateDistanceMatrix(remainingClusterIdx = it.first(), removedClusterIndex = it.last())
             }
         }
 
-        if  (clusters.size != numClusters){
-            throw ClusteringException("Clusters not formed")
-        }
         return clusters
     }
 

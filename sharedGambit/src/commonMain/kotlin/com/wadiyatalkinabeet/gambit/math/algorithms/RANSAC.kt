@@ -1,20 +1,8 @@
 package com.wadiyatalkinabeet.gambit.math.algorithms
 
 import com.wadiyatalkinabeet.gambit.cv.*
-import com.wadiyatalkinabeet.gambit.math.ones
-import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.kotlinx.multik.api.empty
-import org.jetbrains.kotlinx.multik.api.mk
-import org.jetbrains.kotlinx.multik.api.ndarray
-import org.jetbrains.kotlinx.multik.api.ndarrayOf
-import org.jetbrains.kotlinx.multik.ndarray.data.*
-import org.jetbrains.kotlinx.multik.ndarray.operations.div
-import org.jetbrains.kotlinx.multik.ndarray.operations.inplace
-import org.jetbrains.kotlinx.multik.ndarray.operations.map
-import org.jetbrains.kotlinx.multik.ndarray.operations.math
 import java.lang.IndexOutOfBoundsException
 import java.lang.NullPointerException
-import java.util.logging.XMLFormatter
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -31,6 +19,11 @@ private fun warpPoint(
     val warpedZ = (x * transformationMatrix.get(2,0)[0]) + (y * transformationMatrix.get(2,1)[0]) + (z * transformationMatrix.get(2,2)[0])
 
     return Triple(warpedX, warpedY, warpedZ)
+}
+
+fun warpPoint(cornerPoint: Point, transformationMat: Mat): Point{
+    val (warpedX, warpedY, _) = warpPoint(cornerPoint.x, cornerPoint.y, 1.0, transformationMat)
+    return Point(warpedX, warpedY)
 }
 
 fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMat: Mat): Array<Array<Point?>>{
@@ -50,17 +43,7 @@ fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMat: Mat)
     return warpedPoints
 }
 
-fun warpPoints(intersectionPoints: Array<Point?>, transformationMat: Mat): Array<Point?>{
-    val warpedPoints = Array<Point?>( intersectionPoints.size ) {null}
 
-    for (i in intersectionPoints.indices){
-            intersectionPoints[i]?.let {
-                val (warpedX, warpedY, _) = warpPoint(it.x, it.y, 1.0, transformationMat)
-                warpedPoints[i] = Point(warpedX, warpedY)
-            }
-        }
-    return warpedPoints
-}
 
 private fun discardOutliers(
     warpedPoints: Array<Array<Point?>>,
@@ -123,7 +106,7 @@ private fun discardOutliers(
     return Pair(Pair(rowsToKeep,colsToKeep), Pair(ascendingScales[bestXScaleIndex], ascendingScales[bestYScaleIndex]))
 }
 
-private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectionPoints: Array<Array<Point?>>): RANSACConfiguration{
+private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectionPoints: Array<Array<Point?>>): RANSACResults{
     val xSumAlongCols = mutableMapOf<Int, Double>()
     val ySumAlongRows = mutableMapOf<Int, Double>()
     for (i in warpedScaledPoints.indices){
@@ -194,7 +177,7 @@ private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectio
     yMax = yMax-yMin+5
     val warpedImageSize = Size(50.0 * (xMax + 5), 50.0 * (yMax + 5))
 
-    return RANSACConfiguration(
+    return RANSACResults(
         xMax= xMax, yMax = yMax,
         quantizedPoints = quantizedPoints,
         intersectionPoints = filteredIntersectionPoints,
@@ -202,9 +185,9 @@ private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectio
     )
 }
 
-fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACConfiguration? {
+fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACResults? {
     var bestNumInliers = 0
-    var bestRansacConfig: RANSACConfiguration? = null
+    var bestRansacConfig: RANSACResults? = null
     var epoch = 0
     while (bestNumInliers < 30 || epoch < 200) {
 
@@ -286,7 +269,7 @@ fun <T> List<T>.distinctIndexed(): Pair<List<Int>, List<T>> =
 
 class RANSACException(message: String): Exception(message)
 
-data class RANSACConfiguration(
+data class RANSACResults(
     val xMin: Int = 5, val xMax: Int, val yMin: Int = 5, val yMax: Int,
     val scale: Pair<Int, Int> = Pair(50, 50),
     val quantizedPoints: Array<Array<Point?>>,
@@ -298,7 +281,7 @@ data class RANSACConfiguration(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as RANSACConfiguration
+        other as RANSACResults
 
         if (xMin != other.xMin) return false
         if (xMax != other.xMax) return false

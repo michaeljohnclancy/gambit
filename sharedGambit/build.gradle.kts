@@ -124,12 +124,12 @@ android {
         unitTests.isReturnDefaultValues = true
         unitTests.isIncludeAndroidResources = true
     }
-    externalNativeBuild {
-        cmake {
-            path = file("src/androidMain/cpp/CMakeLists.txt")
-            version = "3.10.2"
-        }
-    }
+//    externalNativeBuild {
+//        cmake {
+//            path = file("src/androidMain/cpp/CMakeLists.txt")
+//            version = "3.10.2"
+//        }
+//    }
 
     testOptions {
         unitTests.isIncludeAndroidResources = true

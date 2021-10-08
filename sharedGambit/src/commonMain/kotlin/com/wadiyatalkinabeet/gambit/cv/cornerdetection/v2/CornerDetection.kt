@@ -3,87 +3,54 @@ package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
 import com.wadiyatalkinabeet.gambit.cv.*
 import com.wadiyatalkinabeet.gambit.cv.Point
 import com.wadiyatalkinabeet.gambit.math.algorithms.*
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.datastructures.inverse
 import com.wadiyatalkinabeet.gambit.math.datastructures.toMat
 import com.wadiyatalkinabeet.gambit.math.datastructures.toMatrix
-import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
-import com.wadiyatalkinabeet.gambit.math.statistics.clustering.ClusteringException
-import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
-import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.math.*
 
+fun detectCorners(
+    ransacResults: RANSACResults,
+    sourceMat: Mat,
+    scale: Double
+): List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>? {
 
-fun findCorners(src: Mat): List<com.wadiyatalkinabeet.gambit.math.datastructures.Point?>? {
-    require(src.type() == CV_8UC1)
-    //Resize
-    val (resizedMat, scale) = resize(src, 400.0)
-
-    // Detect all lines
-    val detectedLines = detectLines(resizedMat, eliminateDiagonals = false)
-//        .also { if (it.size > 800) return null }
-
-    // Cluster lines into vertical and horizontal
-    var (horizontalLines, verticalLines) = try {
-        clusterLines(detectedLines)
-    } catch (e: ClusteringException) {
-        null
-    } ?: run { return null }
-
-    // Eliminate similar lines within groups
-    horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
-    verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
-    if (horizontalLines.size <= 2 || verticalLines.size <= 2){
-        return null
-    }
-
-    // Find intersections between remaining points
-    val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
-    if (allIntersectionPoints.size * allIntersectionPoints[0].size < 4){
-        return null
-    }
-
-    val ransacConfiguration = try {
-        runRANSAC(allIntersectionPoints)
-    } catch (e: RANSACException) {
-        null
-    } ?: run { return null }
-
-    if (ransacConfiguration.intersectionPoints.size*ransacConfiguration.intersectionPoints[0].size < 4){
+    if (ransacResults.intersectionPoints.size * ransacResults.intersectionPoints[0].size < 4) {
         return null
     }
 
     val transformationMat = findHomography(
-            MatOfPoint2f(*ransacConfiguration.intersectionPoints.flatten().filterNotNull().toTypedArray()),
-            MatOfPoint2f(*ransacConfiguration.quantizedPoints.flatten().filterNotNull().toTypedArray())
-        )
+        MatOfPoint2f(
+            *ransacResults.intersectionPoints.flatten().filterNotNull().toTypedArray()
+        ),
+        MatOfPoint2f(*ransacResults.quantizedPoints.flatten().filterNotNull().toTypedArray())
+    )
 
     val warpedGrayscaleMat = Mat()
     warpPerspective(
-        resizedMat, warpedGrayscaleMat,
-        transformationMat, ransacConfiguration.warpedImageSize
+        sourceMat, warpedGrayscaleMat,
+        transformationMat, ransacResults.warpedImageSize
     )
 
     val warpedBordersMat = Mat()
     warpPerspective(
-        makeBorderMat(size = resizedMat.size()),
-        warpedBordersMat, transformationMat, ransacConfiguration.warpedImageSize
+        makeBorderMat(size = sourceMat.size()),
+        warpedBordersMat, transformationMat, ransacResults.warpedImageSize
     )
 
     val (xMin, xMax) = try {
         computeVerticalBorders(
-            warpedGrayscaleMat, warpedBordersMat, ransacConfiguration.scale,
-            ransacConfiguration.xMin, ransacConfiguration.xMax
+            warpedGrayscaleMat, warpedBordersMat, ransacResults.scale,
+            ransacResults.xMin, ransacResults.xMax
         )
-    } catch (e: ImageProcessingException) { return null }
+    } catch (e: ImageProcessingException) {
+        return null
+    }
 
-    val scaledXMin = ransacConfiguration.scale.first*xMin
-    val scaledXMax = ransacConfiguration.scale.first*xMax
+    val scaledXMin = ransacResults.scale.first * xMin
+    val scaledXMax = ransacResults.scale.first * xMax
 
-    for (i in 0 until warpedBordersMat.rows()){
-        for (j in 0 until warpedBordersMat.cols()){
-            if (i < scaledXMin || i > scaledXMax){
+    for (i in 0 until warpedBordersMat.rows()) {
+        for (j in 0 until warpedBordersMat.cols()) {
+            if (i < scaledXMin || i > scaledXMax) {
                 warpedBordersMat.put(i, j, 0.0)
             }
         }
@@ -91,24 +58,45 @@ fun findCorners(src: Mat): List<com.wadiyatalkinabeet.gambit.math.datastructures
 
     val (yMin, yMax) = try {
         computeHorizontalBorders(
-            warpedGrayscaleMat, warpedBordersMat, ransacConfiguration.scale,
-            ransacConfiguration.yMin, ransacConfiguration.yMax
+            warpedGrayscaleMat, warpedBordersMat, ransacResults.scale,
+            ransacResults.yMin, ransacResults.yMax
         )
-    } catch (e: ImageProcessingException) { return null }
+    } catch (e: ImageProcessingException) {
+        return null
+    }
 
-    return warpPoints(
-        arrayOf(
-            Point((ransacConfiguration.scale.first*xMin).toDouble(), (ransacConfiguration.scale.second*yMin).toDouble()),
-            Point((ransacConfiguration.scale.first*xMax).toDouble(), (ransacConfiguration.scale.second*yMin).toDouble()),
-            Point((ransacConfiguration.scale.first*xMax).toDouble(), (ransacConfiguration.scale.second*yMax).toDouble()),
-            Point((ransacConfiguration.scale.first*xMin).toDouble(), (ransacConfiguration.scale.second*yMax).toDouble())
-        ), transformationMat.toMatrix().inverse().toMat()
-    ).map { it
-        ?.let{
-            com.wadiyatalkinabeet.gambit.math.datastructures.Point(
-                (it.x/scale).toFloat(), (it.y/scale).toFloat()
-            )
-        } }
+    val inverseWarpMatrix = transformationMat.toMatrix().inverse().toMat()
+
+    return listOf(
+        warpPoint(
+            Point(
+                (ransacResults.scale.first * xMin).toDouble(),
+                (ransacResults.scale.second * yMin).toDouble()),
+            inverseWarpMatrix
+        ),
+        warpPoint(
+            Point(
+                (ransacResults.scale.first * xMax).toDouble(),
+                (ransacResults.scale.second * yMin).toDouble()),
+            inverseWarpMatrix
+        ),
+        warpPoint(
+            Point(
+                (ransacResults.scale.first * xMax).toDouble(),
+                (ransacResults.scale.second * yMax).toDouble()),
+            inverseWarpMatrix
+        ),
+        warpPoint(
+            Point(
+                (ransacResults.scale.first * xMin).toDouble(),
+                (ransacResults.scale.second * yMax).toDouble()),
+            inverseWarpMatrix
+        ),
+    ).map {
+        com.wadiyatalkinabeet.gambit.math.datastructures.Point(
+            (it.x / scale).toFloat(), (it.y / scale).toFloat()
+        )
+    }
 }
 
 private fun computeVerticalBorders(
@@ -227,7 +215,7 @@ private fun computeHorizontalBorders(
     return Pair(yMinScaled, yMaxScaled)
 }
 
-private fun makeBorderMat(size: Size, type: Int = CV_8UC1, borderThickness: Int = 3): Mat{
+fun makeBorderMat(size: Size, type: Int = CV_8UC1, borderThickness: Int = 3): Mat{
     val bordersMat = Mat.zeros(size, type)
     for (i in 3 until bordersMat.rows()-borderThickness){
         for (j in 3 until bordersMat.cols()-borderThickness){

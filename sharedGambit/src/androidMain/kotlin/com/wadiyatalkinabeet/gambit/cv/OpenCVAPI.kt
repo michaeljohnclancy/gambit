@@ -124,13 +124,8 @@ fun Image.toMat(grayscale: Boolean = false): Mat {
     return if (grayscale) toGrayscaleMat() else toRGBMat()
 }
 
-private fun Image.toGrayscaleMat(): Mat {
-    val grayscaleByteArray = ByteArray(width * height)
-    planes[0].buffer.get(grayscaleByteArray)
-
-    val grayscaleMat = Mat(height, width, CvType.CV_8UC1)
-    grayscaleMat.put(0, 0, grayscaleByteArray)
-    return grayscaleMat
+private fun Image.toGrayscaleMat(): org.opencv.core.Mat {
+    return org.opencv.core.Mat(height, width, CvType.CV_8UC1, planes[0].buffer)
 }
 
 private fun Image.toRGBMat(): Mat {
@@ -139,7 +134,6 @@ private fun Image.toRGBMat(): Mat {
     if (format == ImageFormat.YUV_420_888
         && planes.size == 3
     ) {
-
         val chromaPixelStride = planes[1].pixelStride
 
         if (chromaPixelStride == 2) { // Chroma channels are interleaved
@@ -200,18 +194,5 @@ private fun Image.toRGBMat(): Mat {
             Imgproc.cvtColor(yuvMat, rgbaMat, Imgproc.COLOR_YUV2RGBA_I420, 4)
         }
     }
-
     return rgbaMat
-}
-
-fun resize(
-    src: Mat,
-    horizontalSize: Double = 1200.0
-): Pair<Mat, Double> {
-    val w: Double = src.width().toDouble()
-    val h: Double = src.height().toDouble()
-    val scale: Double = horizontalSize / w
-    val dst = Mat()
-    resize(src, dst, Size(horizontalSize, h * scale))
-    return Pair(dst, scale)
 }
