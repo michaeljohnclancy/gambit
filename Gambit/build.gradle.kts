@@ -7,11 +7,6 @@ plugins {
 dependencies {
     implementation(project(":sharedGambit"))
 
-    val cameraxVersion = "1.0.1"
-//    val composeVersion = "1.1.0-alpha04"
-//    val activityComposeVersion = "1.4.0-alpha02"
-//    val lifecycleViewModelComposeVersion = "2.4.0-beta01"
-
     val composeVersion = "1.0.2"
     val activityComposeVersion = "1.3.1"
     val lifecycleViewModelComposeVersion = "2.4.0-beta01"
@@ -53,15 +48,6 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-
-//        externalNativeBuild {
-//            cmake {
-//                cppFlags += "-std=nativeInterop++11 -frtti -fexceptions"
-//                arguments += "-DOpenCV_DIR=../libraries/opencv2-android/sdk/native/jni"
-//                abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
-//            }
-//        }
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -86,11 +72,4 @@ android {
         jvmTarget = "1.8"
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
-
-//    externalNativeBuild {
-//        cmake {
-//            path = file("src/main/cpp/CMakeLists.txt")
-//            version = "3.10.2"
-//        }
-//    }
 }

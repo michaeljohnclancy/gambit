@@ -65,7 +65,7 @@ kotlin {
 
                 val cameraxVersion = "1.0.1"
 
-                implementation(project(":libraries:opencv-android"))
+                implementation("com.quickbirdstudios:opencv:4.5.3.0")
 
                 implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-rc01")
 
@@ -92,7 +92,6 @@ kotlin {
             }
 
             tasks.withType<Test> {
-                systemProperty("java.library.path", "src/commonTest/jniLibs/")
                 useJUnitPlatform()
                 }
         }
@@ -109,27 +108,14 @@ android {
     defaultConfig {
         minSdk = 21
         targetSdk = 31
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++11 -frtti -fexceptions"
-                arguments += "-DOpenCV_DIR=../libraries/opencv-android/sdk/native/jni"
-                abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
-            }
-        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
     testOptions {
-        //Tmp as log isnt mocked, mock log!
+        //Tmp as log isnt mocked, mock log instead of isReturnDefaultValues
         unitTests.isReturnDefaultValues = true
         unitTests.isIncludeAndroidResources = true
     }
-//    externalNativeBuild {
-//        cmake {
-//            path = file("src/androidMain/cpp/CMakeLists.txt")
-//            version = "3.10.2"
-//        }
-//    }
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
