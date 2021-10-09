@@ -3,6 +3,7 @@ package com.wadiyatalkinabeet.gambit.cv
 import com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2.*
 import com.wadiyatalkinabeet.gambit.math.algorithms.RANSACException
 import com.wadiyatalkinabeet.gambit.math.algorithms.runRANSAC
+import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.datastructures.Point
 
 //
@@ -59,6 +60,8 @@ import com.wadiyatalkinabeet.gambit.math.datastructures.Point
 data class ImageAnalysisState(
     val sourceMat: Mat,
     val resizeWidth: Double = 1200.0,
+    var horizontalLines: List<Line> = listOf(),
+    var verticalLines: List<Line> = listOf(),
     var cornerPoints: List<Point>? = null,
     var warpedTransformedMat: Mat? = null,
 ) {
@@ -87,8 +90,10 @@ fun ImageAnalysisState.findCorners(): ImageAnalysisResult {
     //        .also { if (it.size > 800) return null }
 
     // Cluster lines into vertical and horizontal
-
-    var (horizontalLines, verticalLines) = clusterLines(detectedLines)
+//    (horizontalLines, verticalLines) = clusterLines(detectedLines)
+    val (hl, vl) = clusterLines(detectedLines)
+    horizontalLines = hl
+    verticalLines = vl
 
     // Eliminate similar lines within groups
     horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)

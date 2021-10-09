@@ -113,18 +113,6 @@ fun Line.Companion.fromHoughLines(src: Mat): List<Line> {
         }
 }
 
-fun Point.cvToScreenCoords(screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>): Point {
-    return Point(matSize.second.toFloat() - y, x) *
-            (screenSize.first.toFloat() / matSize.second.toFloat())
-}
-
-fun Segment.cvToScreenCoords(screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>): Segment {
-    return Segment(
-        p0.cvToScreenCoords(screenSize, matSize),
-        p1.cvToScreenCoords(screenSize, matSize)
-    )
-}
-
 fun processImage(matIn: Mat): Mat {
     val matOut: Mat = Mat()
     val lowerThreshold = 10.0

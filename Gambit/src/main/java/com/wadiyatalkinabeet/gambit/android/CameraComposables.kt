@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -19,15 +20,11 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewModelScope
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import com.wadiyatalkinabeet.gambit.cv.ImageAnalysisResult
-import com.wadiyatalkinabeet.gambit.cv.Point
-import com.wadiyatalkinabeet.gambit.cv.cvToScreenCoords
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.flow.Flow
 
 
@@ -124,14 +121,26 @@ fun ImageAnalysisOverlay(
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val screenSize = Pair(size.width.toInt(), size.height.toInt())
-        val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
+        val matSize = Size(
+            imageAnalysisResolution.width.toFloat(),
+            imageAnalysisResolution.height.toFloat()
+        )
 
         imageAnalysisResult?.let {
             when (it){
                 is ImageAnalysisResult.Success -> {
-                    it.imageAnalysisState
-                    it.imageAnalysisState.cornerPoints?.run { drawPointOverlay(this, screenSize, matSize) }
+                    cvToScreenCoords(
+                        matSize
+                    ) {
+                        it.imageAnalysisState.horizontalLines
+                            .map { line -> line.toSegment() }
+                            .let { lines -> drawSegments(lines, Color.Red, 2f) }
+                        it.imageAnalysisState.verticalLines
+                            .map { line -> line.toSegment() }
+                            .let { lines -> drawSegments(lines, Color.Green, 2f) }
+                        it.imageAnalysisState.cornerPoints
+                            ?.run { drawPointOverlay(this) }
+                    }
                 }
                 is ImageAnalysisResult.Failure -> {
                 }
@@ -141,8 +150,45 @@ fun ImageAnalysisOverlay(
     }
 }
 
-fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>, screenSize: Pair<Int, Int>, matSize: Pair<Int, Int>) {
-    cornerPoints.map { point -> point.cvToScreenCoords(screenSize, matSize) }
+fun DrawScope.cvToScreenCoords(
+    matSize: Size,
+    block: DrawScope.() -> Unit
+) {
+
+    val scale = size.width / matSize.height
+    drawContext.transform.scale(scale, scale, Offset(0f, 0f))
+    drawContext.transform.rotate(90f, Offset(0f, 0f))
+    drawContext.transform.translate(0f, -matSize.height)
+    block()
+// Uncomment for debug rect
+// Top: Black
+// Left: Yellow
+// Right: Cyan
+// Bottom: White
+//    drawSegments(
+//        listOf(Segment(0f, 0f, matSize.width, 0f)),
+//        Color.Cyan, 5f
+//    )
+//    drawSegments(
+//        listOf(Segment(0f, matSize.height, matSize.width, matSize.height)),
+//        Color.Yellow, 5f
+//    )
+//
+//    drawSegments(
+//        listOf(Segment(0f, 0f, 0f, matSize.height)),
+//        Color.Black, 5f
+//    )
+//    drawSegments(
+//        listOf(Segment(matSize.width, 0f, matSize.width, matSize.height)),
+//        Color.White, 5f
+//    )
+    drawContext.transform.translate(0f, matSize.height)
+    drawContext.transform.rotate(-90f, Offset(0f, 0f))
+    drawContext.transform.scale(1/scale, 1/scale, Offset(0f, 0f))
+}
+
+fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>) {
+    cornerPoints
         .map { point -> Offset(point.x, point.y) }
         .let {
             drawPoints(
@@ -154,9 +200,9 @@ fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.m
         }
 }
 
-fun drawSegments(g: DrawScope, segments: List<Segment>, color: Color, strokeWidth: Float) {
+fun DrawScope.drawSegments(segments: List<Segment>, color: Color, strokeWidth: Float) {
     for (seg in segments) {
-        g.drawLine(
+        drawLine(
             color,
             start = Offset(seg.p0.x, seg.p0.y),
             end = Offset(seg.p1.x, seg.p1.y),
