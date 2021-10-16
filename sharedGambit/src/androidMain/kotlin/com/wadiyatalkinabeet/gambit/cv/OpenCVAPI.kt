@@ -6,7 +6,7 @@ import org.opencv.android.OpenCVLoader
 import org.opencv.calib3d.Calib3d
 import org.opencv.core.Core
 import org.opencv.core.CvType
-import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE
 import org.opencv.imgcodecs.Imgcodecs.imread
 import org.opencv.imgproc.Imgproc
 import org.opencv.utils.Converters
@@ -116,9 +116,7 @@ actual fun Mat.height() = height()
 
 actual fun Mat.size(): Size = size()
 
-actual fun loadChessboardExampleImage(): Mat {
-    return imread("src/commonTest/res/example_chessboard_images/1.jpg")
-}
+actual fun imread(path: String): Mat = imread(path, IMREAD_GRAYSCALE)
 
 fun Image.toMat(grayscale: Boolean = false): Mat {
     return if (grayscale) toGrayscaleMat() else toRGBMat()

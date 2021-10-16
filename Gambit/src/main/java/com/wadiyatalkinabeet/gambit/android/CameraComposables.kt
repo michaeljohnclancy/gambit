@@ -187,7 +187,7 @@ fun DrawScope.cvToScreenCoords(
     drawContext.transform.scale(1/scale, 1/scale, Offset(0f, 0f))
 }
 
-fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>) {
+fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>) =
     cornerPoints
         .map { point -> Offset(point.x, point.y) }
         .let {
@@ -198,7 +198,6 @@ fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.m
                 12f
             )
         }
-}
 
 fun DrawScope.drawSegments(segments: List<Segment>, color: Color, strokeWidth: Float) {
     for (seg in segments) {

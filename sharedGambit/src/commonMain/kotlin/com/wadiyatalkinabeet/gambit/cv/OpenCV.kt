@@ -2,8 +2,6 @@ package com.wadiyatalkinabeet.gambit.cv
 
 import com.wadiyatalkinabeet.gambit.math.algorithms.quickSelect
 import com.wadiyatalkinabeet.gambit.math.datastructures.Line
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
-import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
@@ -30,6 +28,8 @@ fun Mat.rows() = width()
 
 fun Mat.cols() = height()
 
+expect fun imread(path: String): Mat
+
 expect class MatOfPoint2f: Mat
 
 expect class MatOfPoint3f: Mat
@@ -45,8 +45,6 @@ expect fun multiply(src1: Mat, src2: Mat, dst: Mat)
 expect fun gemm(src1: Mat, src2: Mat, alpha: Double, src3: Mat, beta: Double, dst: Mat)
 
 expect fun vector_Point2d_to_Mat(points: List<org.opencv.core.Point>): Mat
-
-expect fun loadChessboardExampleImage(): Mat
 
 expect fun cvtColor(src: Mat, dst: Mat, colorOut: Int)
 
