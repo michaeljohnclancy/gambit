@@ -28,6 +28,10 @@ expect open class Mat(){
     fun reshape(cn: Int, rows: Int): Mat
 }
 
+fun Mat.cols() = height()
+
+expect fun imread(path: String): Mat
+
 expect class MatOfPoint2f(vararg points: Point): Mat
 
 expect class MatOfPoint3f(vararg points: Point3): Mat
@@ -43,8 +47,6 @@ expect fun multiply(src1: Mat, src2: Mat, dst: Mat)
 expect fun gemm(src1: Mat, src2: Mat, alpha: Double, src3: Mat, beta: Double, dst: Mat)
 
 expect fun vector_Point2d_to_Mat(points: List<Point>): Mat
-
-expect fun loadChessboardExampleImage(): Mat
 
 expect fun cvtColor(src: Mat, dst: Mat, colorOut: Int)
 

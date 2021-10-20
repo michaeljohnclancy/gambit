@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 plugins {
     kotlin("multiplatform")
     kotlin("native.cocoapods")
+    kotlin("plugin.serialization") version "1.5.31"
     id("com.android.library")
 }
 
@@ -66,6 +67,9 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
+
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
 
                 implementation("org.robolectric:robolectric:4.4")
             }
