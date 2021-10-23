@@ -1,14 +1,14 @@
-package com.wadiyatalkinabeet.gambit.cv.cornerdetection.v2
+package com.wadiyatalkinabeet.gambit.use_cases
 
-import com.wadiyatalkinabeet.gambit.cv.*
+import com.wadiyatalkinabeet.gambit.domain.cv.Mat
+import com.wadiyatalkinabeet.gambit.domain.cv.imread
+import com.wadiyatalkinabeet.gambit.domain.cv.initOpenCV
 import com.wadiyatalkinabeet.gambit.math.datastructures.Point
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import java.io.File
-import kotlin.test.assertEquals
 
 const val EPSILON = 10f
 
@@ -28,7 +28,7 @@ data class Metadata(val corners: Corners)
 internal class CornerDetectionKtTest{
 
     init {
-       initOpenCV()
+        initOpenCV()
     }
 
     val testIds = 1..5
@@ -65,11 +65,11 @@ internal class CornerDetectionKtTest{
     @TestFactory
     fun checkCorrectCornersFound() = testIds.map { id ->
         dynamicTest("Test image #$id") {
-            val (img, corners) = loadTestImage(id)
-            val imageAnalysis = ImageAnalysisState(img)
-            val result = imageAnalysis.findCorners()
-                as ImageAnalysisResult.Success
-            assertApproxEquals(corners, result.imageAnalysisState.cornerPoints!!)
+            val (mat, corners) = loadTestImage(id)
+            val detectBoardUseCase = DetectBoardUseCase()
+            val result = detectBoardUseCase(mat)
+
+            assertApproxEquals(corners, result.data!!.cornerPoints!!)
         }
     }
 

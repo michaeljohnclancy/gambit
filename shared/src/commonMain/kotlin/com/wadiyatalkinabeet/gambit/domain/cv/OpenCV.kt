@@ -28,8 +28,6 @@ expect open class Mat(){
     fun reshape(cn: Int, rows: Int): Mat
 }
 
-fun Mat.cols() = height()
-
 expect fun imread(path: String): Mat
 
 expect class MatOfPoint2f(vararg points: Point): Mat

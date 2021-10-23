@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit.cv
+package com.wadiyatalkinabeet.gambit.domain.cv
 
 import android.graphics.ImageFormat
 import android.media.Image

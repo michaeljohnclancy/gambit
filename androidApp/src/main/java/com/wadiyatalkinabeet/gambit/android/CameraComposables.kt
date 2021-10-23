@@ -20,14 +20,11 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewModelScope
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
-import com.wadiyatalkinabeet.gambit.cv.ImageAnalysisResult
 import com.wadiyatalkinabeet.gambit.Resource
 import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
 import kotlinx.coroutines.flow.Flow
 
 
@@ -138,12 +135,12 @@ fun ImageAnalysisOverlay(
                     cvToScreenCoords(
                         matSize
                     ) {
-                        it.data?.horizontalLines
-                            .map { line -> line.toSegment() }
-                            .let { lines -> drawSegments(lines, Color.Red, 2f) }
-                        it.data?.verticalLines
-                            .map { line -> line.toSegment() }
-                            .let { lines -> drawSegments(lines, Color.Green, 2f) }
+//                        it.data?.horizontalLines
+//                            .map { line -> line.toSegment() }
+//                            .let { lines -> drawSegments(lines, Color.Red, 2f) }
+//                        it.data?.verticalLines
+//                            .map { line -> line.toSegment() }
+//                            .let { lines -> drawSegments(lines, Color.Green, 2f) }
                         it.data?.cornerPoints
                             ?.run { drawPointOverlay(this) }
                     }
