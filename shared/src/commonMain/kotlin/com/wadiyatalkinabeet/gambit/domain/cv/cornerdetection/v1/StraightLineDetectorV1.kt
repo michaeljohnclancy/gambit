@@ -4,7 +4,7 @@ package com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v1
 //import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 //import com.wadiyatalkinabeet.gambit.domain.math.datastructures.isSimilarTo
 //import com.wadiyatalkinabeet.gambit.domain.math.datastructures.toPoints
-//import com.wadiyatalkinabeet.gambit.math.datastructures.DisjointSet
+//import com.wadiyatalkinabeet.gambit.domain.math.datastructures.DisjointSet
 //import org.opencv.core.CvType.*
 //
 //import org.opencv.core.Mat

@@ -1,7 +1,6 @@
 package com.wadiyatalkinabeet.gambit
 
 //import com.wadiyatalkinabeet.gambit.cv.loadChessboardExampleImage
-import com.wadiyatalkinabeet.gambit.domain.cv.processImage
 import kotlin.test.Test
 
 class PlatformTest {

@@ -25,9 +25,9 @@ actual open class Mat {
     constructor(nativeMat: org.opencv.core.Mat) {
         this.nativeMat = nativeMat
     }
-    actual constructor(width: Int, height: Int, type: Int, buffer: ByteBuffer?) {
-        nativeMat = buffer?.let {
-            org.opencv.core.Mat(width, height, type, it)
+    actual constructor(width: Int, height: Int, type: Int, byteArray: ByteArray?) {
+        nativeMat = byteArray?.let {
+            org.opencv.core.Mat(width, height, type, ByteBuffer.wrap(it))
         } ?: org.opencv.core.Mat(width, height, type)
     }
 
@@ -158,7 +158,7 @@ fun Image.toMat(grayscale: Boolean = false): Mat {
 actual fun imread(path: String) = Mat(imread(path, IMREAD_GRAYSCALE))
 
 private fun Image.toGrayscaleMat(): Mat {
-    return Mat(height, width, CvType.CV_8UC1, planes[0].buffer)
+    return Mat(height, width, CvType.CV_8UC1, planes[0].buffer.array())
 }
 
 private fun Image.toRGBMat(): Mat {

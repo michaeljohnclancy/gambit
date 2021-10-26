@@ -1,6 +1,9 @@
 package com.wadiyatalkinabeet.gambit.math.algorithms
 
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.MeshgridIndex
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.meshGrid
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class MeshgridTest {
@@ -19,10 +22,10 @@ class MeshgridTest {
         assertEquals(actual2.size, expected2.size)
 
         actual1.indices.forEach{
-            assert(expected1[it].contentEquals(actual1[it]))
+            assertContentEquals(expected1[it], actual1[it])
         }
         actual2.indices.forEach{
-            assert(expected2[it].contentEquals(actual2[it]))
+            assertContentEquals(expected2[it], actual2[it])
         }
 
     }
@@ -41,10 +44,10 @@ class MeshgridTest {
         assertEquals(actual2.size, expected2.size)
 
         actual1.indices.forEach{
-            assert(expected1[it].contentEquals(actual1[it]))
+            assertContentEquals(expected1[it], actual1[it])
         }
         actual2.indices.forEach{
-            assert(expected2[it].contentEquals(actual2[it]))
+            assertContentEquals(expected2[it], actual2[it])
         }
     }
 }

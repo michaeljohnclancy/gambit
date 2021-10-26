@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit.math.algorithms
+package com.wadiyatalkinabeet.gambit.domain.math.algorithms
 
 
 fun meshGrid(x: FloatArray, y: FloatArray, indexing: MeshgridIndex = MeshgridIndex.XY): Pair<Array<FloatArray>, Array<FloatArray>> {

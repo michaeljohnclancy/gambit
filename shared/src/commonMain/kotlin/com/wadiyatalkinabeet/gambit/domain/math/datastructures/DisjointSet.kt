@@ -1,8 +1,8 @@
-package com.wadiyatalkinabeet.gambit.math.datastructures
+package com.wadiyatalkinabeet.gambit.domain.math.datastructures
 
 class DisjointSet(val size: Int) {
     private val rank = ByteArray(size)
-    val parent = IntArray(size)
+    private val parent = IntArray(size)
     var count = size
 
         private set

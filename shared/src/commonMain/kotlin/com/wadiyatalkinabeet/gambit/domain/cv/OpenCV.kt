@@ -2,7 +2,6 @@ package com.wadiyatalkinabeet.gambit.domain.cv
 
 import com.wadiyatalkinabeet.gambit.domain.math.algorithms.quickSelect
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
-import java.nio.ByteBuffer
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
@@ -16,7 +15,7 @@ expect class Mat(){
         fun zeros(size: Size, type: Int): Mat
     }
 
-    constructor(width: Int, height: Int, type: Int, buffer: ByteBuffer? = null)
+    constructor(width: Int, height: Int, type: Int, byteArray: ByteArray? = null)
 
     operator fun get(row: Int, col: Int): FloatArray
     operator fun set(row: Int, col: Int, value: FloatArray)
@@ -118,9 +117,9 @@ fun Line.Companion.fromHoughLines(src: Mat): List<Line> {
         .map{ src[it, 0] }
         .map{
             if (it[0] > 0) {
-                Line(it[0].toFloat(), it[1].toFloat())
+                Line(it[0], it[1])
             } else {
-                Line(-it[0].toFloat(), (it[1] - PI).toFloat())
+                Line(-it[0], (it[1] - PI).toFloat())
             }
         }
 }

@@ -3,10 +3,10 @@ package com.wadiyatalkinabeet.gambit.math.geometry
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
-import java.lang.Math.abs
-import java.lang.Math.sqrt
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

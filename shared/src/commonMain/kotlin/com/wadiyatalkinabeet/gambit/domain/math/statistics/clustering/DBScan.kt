@@ -1,4 +1,4 @@
-package com.wadiyatalkinabeet.gambit.math.statistics.clustering
+package com.wadiyatalkinabeet.gambit.domain.math.statistics.clustering
 
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 

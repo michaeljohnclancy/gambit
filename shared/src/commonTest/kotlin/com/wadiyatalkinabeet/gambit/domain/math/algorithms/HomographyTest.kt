@@ -1,6 +1,5 @@
-package com.wadiyatalkinabeet.gambit.math.algorithms
+package com.wadiyatalkinabeet.gambit.domain.math.algorithms
 
-import org.junit.Assert
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.expect

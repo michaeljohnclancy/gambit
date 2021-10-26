@@ -6,7 +6,7 @@ package com.wadiyatalkinabeet.gambit
 //import com.wadiyatalkinabeet.gambit.domain.cv.loadChessboardExampleImage
 //import com.wadiyatalkinabeet.gambit.ml.NeuralLAPS
 //import kotlin.test.Ignore
-
+//
 //import kotlin.test.Test
 //
 //class LatticePointDetectorV1Test {

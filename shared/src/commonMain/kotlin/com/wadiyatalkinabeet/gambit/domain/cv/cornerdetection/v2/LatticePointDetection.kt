@@ -1,8 +1,8 @@
 package com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.domain.cv.Point
-import com.wadiyatalkinabeet.gambit.math.algorithms.MeshgridIndex
-import com.wadiyatalkinabeet.gambit.math.algorithms.meshGrid
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.MeshgridIndex
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.meshGrid
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
 
 import kotlin.math.cos

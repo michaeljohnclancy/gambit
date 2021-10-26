@@ -7,15 +7,6 @@ import kotlinx.cinterop.usePinned
 import org.opencv.*
 import platform.Foundation.*
 import platform.posix.memcpy
-import java.nio.ByteBuffer
-
-//import android.graphics.ImageFormat
-//import android.media.Image
-//
-//actual fun initOpenCV() {
-//    OpenCVLoader.initDebug()
-//}
-//
 
 actual open class Mat{
 
@@ -26,16 +17,16 @@ actual open class Mat{
     constructor(nativeMat: org.opencv.Mat) {
         this.nativeMat = nativeMat
     }
-    actual constructor(width: Int, height: Int, type: Int, buffer: ByteBuffer?) {
-        nativeMat = buffer?.let {
-            org.opencv.Mat(width, height, type, it.array().toImageBytes())
+    actual constructor(width: Int, height: Int, type: Int, byteArray: ByteArray?) {
+        nativeMat = byteArray?.let {
+            org.opencv.Mat(width, height, type, it.toNSData())
         } ?: org.opencv.Mat(width, height, type)
     }
 
-    actual operator fun get(row: Int, col: Int) = (nativeMat.get(row, col) as List<Float>).toFloatArray()
+    actual operator fun get(row: Int, col: Int): FloatArray = (nativeMat.get(row, col) as List<Float>).toFloatArray()
     actual operator fun set(row: Int, col: Int, value: FloatArray) { nativeMat.put(row, col, value.toList()) }
 
-    actual fun reshape(channels: Int, rows: Int) = Mat(nativeMat.reshape(channels, rows))
+    actual fun reshape(channels: Int, rows: Int): Mat = Mat(nativeMat.reshape(channels, rows))
     actual fun convertTo(resultMat: Mat, type: Int) = nativeMat.convertTo(resultMat.nativeMat, type)
     actual fun row(rowIndex: Int): Mat = Mat(nativeMat.row(rowIndex))
     actual fun col(colIndex: Int): Mat = Mat(nativeMat.col(colIndex))
@@ -60,7 +51,7 @@ actual class MatOfPoint2 actual constructor(points: List<Point>): org.opencv.Mat
 actual class MatOfPoint3 actual constructor(points: List<Point3>): org.opencv.MatOfPoint3f(points)
 
 actual typealias Size = Size2i
-//
+
 actual fun multiply(src1: Mat, src2: Mat, dst: Mat) = Core.multiply(src1.nativeMat, src2.nativeMat, dst.nativeMat)
 //
 //actual fun gemm(src1: Mat, src2: MatOfPoint3f, alpha: Double, src3: Mat, beta: Double, dst: Mat) = Core.gemm(src1, src2, alpha, src3, beta, dst)
@@ -150,9 +141,9 @@ fun NSData.toByteArray(): ByteArray =
         }
     }
 
-fun ByteArray.toImageBytes() : NSData = memScoped {
-    NSData.create(bytes = allocArrayOf(this@toImageBytes),
-        length = this@toImageBytes.size.toULong())
+fun ByteArray.toNSData() : NSData = memScoped {
+    NSData.create(bytes = allocArrayOf(this@toNSData),
+        length = this@toNSData.size.toULong())
 }
 //
 //actual fun Mat.reshape(

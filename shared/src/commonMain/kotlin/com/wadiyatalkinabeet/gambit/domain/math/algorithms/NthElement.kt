@@ -1,6 +1,4 @@
-package com.wadiyatalkinabeet.gambit.math.algorithms
-
-import java.lang.RuntimeException
+package com.wadiyatalkinabeet.gambit.domain.math.algorithms
 
 class NthElement {
 

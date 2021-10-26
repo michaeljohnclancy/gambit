@@ -1,9 +1,10 @@
 package com.wadiyatalkinabeet.gambit.domain.math.algorithms
 
 import kotlin.math.floor
+import kotlin.random.Random
 
 const val MAX = Int.MAX_VALUE
-val rand = java.util.Random()
+val rand = Random(0)
 
 fun partition(list:IntArray, left: Int, right:Int, pivotIndex: Int): Int {
     val pivotValue = list[pivotIndex]
