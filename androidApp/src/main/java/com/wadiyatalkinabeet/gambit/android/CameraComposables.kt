@@ -24,7 +24,8 @@ import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import com.wadiyatalkinabeet.gambit.Resource
-import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 import kotlinx.coroutines.flow.Flow
 
 
@@ -192,7 +193,7 @@ fun DrawScope.cvToScreenCoords(
     drawContext.transform.scale(1/scale, 1/scale, Offset(0f, 0f))
 }
 
-fun DrawScope.drawPointOverlay(cornerPoints: List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>) =
+fun DrawScope.drawPointOverlay(cornerPoints: List<Point>) =
     cornerPoints
         .map { point -> Offset(point.x, point.y) }
         .let {

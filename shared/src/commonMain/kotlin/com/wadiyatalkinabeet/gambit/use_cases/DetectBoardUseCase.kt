@@ -3,8 +3,8 @@ package com.wadiyatalkinabeet.gambit.use_cases
 import com.wadiyatalkinabeet.gambit.Resource
 import com.wadiyatalkinabeet.gambit.domain.cv.*
 import com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2.*
-import com.wadiyatalkinabeet.gambit.math.algorithms.RANSACException
-import com.wadiyatalkinabeet.gambit.math.algorithms.runRANSAC
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.RANSACException
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.runRANSAC
 
 class DetectBoardUseCase() {
 

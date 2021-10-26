@@ -1,6 +1,6 @@
-package com.wadiyatalkinabeet.gambit.math.algorithms
+package com.wadiyatalkinabeet.gambit.domain.math.algorithms
 
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 
 private fun convexHull(points: Array<Point>): Collection<Point> {
     if (points.size < 3) throw IllegalArgumentException("there must be at least 3 points")

@@ -1,6 +1,6 @@
 package com.wadiyatalkinabeet.gambit.math.statistics.clustering
 
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
 
 class AverageAgglomerative(val lines: List<Line>, val numClusters: Int = 2) {
 

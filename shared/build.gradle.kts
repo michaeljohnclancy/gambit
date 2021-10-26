@@ -14,33 +14,59 @@ version = "1.0"
 kotlin {
     android()
 
-//    val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget = when {
-//        System.getenv("SDK_NAME")?.startsWith("iphoneos") == true -> ::iosArm64
-//        System.getenv("NATIVE_ARCH")?.startsWith("arm") == true -> ::iosSimulatorArm64
-//        else -> ::iosX64
-//    }
+    val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget = when {
+        System.getenv("SDK_NAME")?.startsWith("iphoneos") == true -> ::iosArm64
+        System.getenv("NATIVE_ARCH")?.startsWith("arm") == true -> ::iosSimulatorArm64
+        else -> ::iosX64
+    }
 
-//    iosTarget("ios") {}
+    iosTarget("ios") {
+        compilations.getByName("main") {
+            val openCVInterop by cinterops.creating {
+                defFile(project.file("src/nativeInterop/cinterop/OpenCV.def"))
+
+                includeDirs {
+                    allHeaders("/Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers")
+                }
+                extraOpts = listOf("-compiler-option", "-DNS_FORMAT_ARGUMENT(A)=")
+            }
+//            val openCVCoreInterop by cinterops.creating {
+//                defFile(project.file("src/nativeInterop/cinterop/OpenCVCore.def"))
 //
-//    cocoapods {
-//        ios.deploymentTarget = "14.1"
-//        framework {
-//            summary = "Gambit shared library"
-//            homepage = "https://kt.wadiyatalkinabeet.com/gambit"
-//            baseName = "shared"
-//            isStatic = false
-//            podfile = project.file  ("../iosApp/Podfile")
-//        }
+//                includeDirs {
+//                    allHeaders("/Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers")
+//                }
+//                extraOpts = listOf("-compiler-option", "-DNS_FORMAT_ARGUMENT(A)=")
+//            }
+//            val openCVImgprocInterop by cinterops.creating {
+//                defFile(project.file("src/nativeInterop/cinterop/OpenCVImgproc.def"))
 //
+//                includeDirs {
+//                    allHeaders("/Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers")
+//                }
+//                extraOpts = listOf("-compiler-option", "-DNS_FORMAT_ARGUMENT(A)=")
+//            }
+        }
+    }
+
+    cocoapods {
+        ios.deploymentTarget = "14.1"
+        framework {
+            summary = "Gambit shared library"
+            homepage = "https://kt.wadiyatalkinabeet.com/gambit"
+            baseName = "shared"
+            isStatic = false
+            podfile = project.file  ("../iosApp/Podfile")
+        }
 //        specRepos {
 //            url("https://github.com/michaeljohnclancy/PodSpecs.git/")
 //        }
-//
-//        xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
-//        xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
-//
+
+        xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
+        xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
+
 //        pod("LegoCV")
-//    }
+    }
 
     sourceSets {
         all {
@@ -68,10 +94,9 @@ kotlin {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
 
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
 
-                implementation("org.robolectric:robolectric:4.4")
+//                implementation("org.robolectric:robolectric:4.4")
             }
         }
         val androidMain by getting {
@@ -86,9 +111,9 @@ kotlin {
                 implementation("androidx.camera:camera-core:$cameraxVersion")
                 implementation("androidx.camera:camera-camera2:$cameraxVersion")
                 implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-                implementation("androidx.camera:camera-view:1.0.0-alpha29")
+                implementation("androidx.camera:camera-view:1.0.0-alpha30")
 
-                implementation("com.github.skgmn:cameraxx:0.6.0")
+                implementation("com.github.skgmn:cameraxx:0.7.0")
                 implementation("androidx.test:core-ktx:1.4.0")
 
             }
@@ -125,8 +150,8 @@ android {
         minSdk = 21
         targetSdk = 31
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
     }
+
     testOptions {
         //Tmp as log isnt mocked, mock log instead of isReturnDefaultValues
         unitTests.isReturnDefaultValues = true

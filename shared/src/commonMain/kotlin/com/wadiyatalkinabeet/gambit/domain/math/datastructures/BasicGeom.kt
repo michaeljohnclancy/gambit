@@ -1,6 +1,5 @@
-package com.wadiyatalkinabeet.gambit.math.datastructures
+package com.wadiyatalkinabeet.gambit.domain.math.datastructures
 
-import java.lang.Exception
 import kotlin.math.*
 
 typealias Vector = Point

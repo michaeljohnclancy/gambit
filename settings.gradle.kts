@@ -13,3 +13,5 @@ rootProject.name = "Gambit"
 
 include(":androidApp")
 include(":shared")
+
+include(":libs:opencv-android")

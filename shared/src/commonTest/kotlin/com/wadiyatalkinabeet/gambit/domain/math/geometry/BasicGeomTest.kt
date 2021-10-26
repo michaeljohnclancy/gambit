@@ -1,14 +1,13 @@
 package com.wadiyatalkinabeet.gambit.math.geometry
 
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
-import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 import java.lang.Math.abs
 import java.lang.Math.sqrt
 import kotlin.math.PI
 import kotlin.math.pow
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -36,7 +35,6 @@ class BasicGeomTest {
         }
     }
 
-    @Nested
     class PointTest {
         companion object {
             // Some example points for testing
@@ -158,7 +156,6 @@ class BasicGeomTest {
         //TODO Manhattan distance
     }
 
-    @Nested
     class SegmentTest {
         companion object {
             // Some example segments for testing
@@ -192,7 +189,6 @@ class BasicGeomTest {
         }
     }
 
-    @Nested
     class LineTest {
         companion object {
             // The two diagonals of a 100x100 box

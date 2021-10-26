@@ -1,6 +1,6 @@
 package com.wadiyatalkinabeet.gambit.math.statistics.clustering
 
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import kotlin.math.PI

@@ -1,7 +1,7 @@
 package com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.domain.cv.*
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.AverageAgglomerative
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.DBScan
 import com.wadiyatalkinabeet.gambit.math.statistics.clustering.FCluster

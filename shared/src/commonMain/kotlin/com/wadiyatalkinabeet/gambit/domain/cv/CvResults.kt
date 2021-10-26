@@ -1,6 +1,6 @@
 package com.wadiyatalkinabeet.gambit.domain.cv
 
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 
 //
 //data class CornerDetectionState(
@@ -60,7 +60,6 @@ data class ImageAnalysisState(
     var warpedTransformedMat: Mat? = null,
 ) {
     val scale = resizeWidth / sourceMat.width().toDouble()
-
 }
 
 class NotEnoughFeaturesException(message: String) : Exception(message)

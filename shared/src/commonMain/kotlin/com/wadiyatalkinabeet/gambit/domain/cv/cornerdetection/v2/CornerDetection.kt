@@ -2,26 +2,25 @@ package com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2
 
 import com.wadiyatalkinabeet.gambit.domain.cv.*
 import com.wadiyatalkinabeet.gambit.domain.cv.Point
-import com.wadiyatalkinabeet.gambit.math.algorithms.*
-import com.wadiyatalkinabeet.gambit.math.datastructures.inverse
-import com.wadiyatalkinabeet.gambit.math.datastructures.toMat
-import com.wadiyatalkinabeet.gambit.math.datastructures.toMatrix
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.RANSACResults
+import com.wadiyatalkinabeet.gambit.domain.math.algorithms.warpPoint
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.inverse
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.toMat
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.toMatrix
 
 fun detectCorners(
     ransacResults: RANSACResults,
     sourceMat: Mat,
     scale: Double
-): List<com.wadiyatalkinabeet.gambit.math.datastructures.Point>? {
+): List<com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point>? {
 
     if (ransacResults.intersectionPoints.size * ransacResults.intersectionPoints[0].size < 4) {
         return null
     }
 
     val transformationMat = findHomography(
-        MatOfPoint2f(
-            *ransacResults.intersectionPoints.flatten().filterNotNull().toTypedArray()
-        ),
-        MatOfPoint2f(*ransacResults.quantizedPoints.flatten().filterNotNull().toTypedArray())
+        MatOfPoint2(ransacResults.intersectionPoints.flatten().filterNotNull()),
+        MatOfPoint2(ransacResults.quantizedPoints.flatten().filterNotNull())
     )
 
     val warpedGrayscaleMat = Mat()
@@ -51,7 +50,7 @@ fun detectCorners(
     for (i in 0 until warpedBordersMat.rows()) {
         for (j in 0 until warpedBordersMat.cols()) {
             if (i < scaledXMin || i > scaledXMax) {
-                warpedBordersMat.put(i, j, 0.0)
+                warpedBordersMat[i, j] = floatArrayOf(0f)
             }
         }
     }
@@ -70,30 +69,30 @@ fun detectCorners(
     return listOf(
         warpPoint(
             Point(
-                (ransacResults.scale.first * xMin).toDouble(),
-                (ransacResults.scale.second * yMin).toDouble()),
+                (ransacResults.scale.first * xMin).toFloat(),
+                (ransacResults.scale.second * yMin).toFloat()),
             inverseWarpMatrix
         ),
         warpPoint(
             Point(
-                (ransacResults.scale.first * xMax).toDouble(),
-                (ransacResults.scale.second * yMin).toDouble()),
+                (ransacResults.scale.first * xMax).toFloat(),
+                (ransacResults.scale.second * yMin).toFloat()),
             inverseWarpMatrix
         ),
         warpPoint(
             Point(
-                (ransacResults.scale.first * xMax).toDouble(),
-                (ransacResults.scale.second * yMax).toDouble()),
+                (ransacResults.scale.first * xMax).toFloat(),
+                (ransacResults.scale.second * yMax).toFloat()),
             inverseWarpMatrix
         ),
         warpPoint(
             Point(
-                (ransacResults.scale.first * xMin).toDouble(),
-                (ransacResults.scale.second * yMax).toDouble()),
+                (ransacResults.scale.first * xMin).toFloat(),
+                (ransacResults.scale.second * yMax).toFloat()),
             inverseWarpMatrix
         ),
     ).map {
-        com.wadiyatalkinabeet.gambit.math.datastructures.Point(
+        com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point(
             (it.x / scale).toFloat(), (it.y / scale).toFloat()
         )
     }
@@ -108,8 +107,8 @@ private fun computeVerticalBorders(
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255.0){
-                resultMat.put(i, j, 0.0)
+            if (warpedBorderMat[i, j][0] != 255f){
+                resultMat[i, j] = floatArrayOf(0f)
             }
         }
 
@@ -119,8 +118,8 @@ private fun computeVerticalBorders(
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255.0){
-                resultMat.put(i, j, 0.0)
+            if (warpedBorderMat[i, j][0] != 255f){
+                resultMat[i, j] = floatArrayOf(0f)
             }
         }
 
@@ -166,8 +165,8 @@ private fun computeHorizontalBorders(
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255.0){
-                resultMat.put(i, j, 0.0)
+            if (warpedBorderMat[i, j][0] != 255f){
+                resultMat[i, j] = floatArrayOf(0f)
             }
         }
 
@@ -177,8 +176,8 @@ private fun computeHorizontalBorders(
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255.0){
-                resultMat.put(i, j, 0.0)
+            if (warpedBorderMat[i, j][0] != 255f){
+                resultMat[i, j] = floatArrayOf(0f)
             }
         }
 
@@ -219,7 +218,7 @@ fun makeBorderMat(size: Size, type: Int = CV_8UC1, borderThickness: Int = 3): Ma
     val bordersMat = Mat.zeros(size, type)
     for (i in 3 until bordersMat.rows()-borderThickness){
         for (j in 3 until bordersMat.cols()-borderThickness){
-            bordersMat.put(i, j, 255.0)
+            bordersMat[i, j] = floatArrayOf(255f)
         }
     }
     return bordersMat

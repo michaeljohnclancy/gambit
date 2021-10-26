@@ -1,4 +1,6 @@
-package com.wadiyatalkinabeet.gambit.math.algorithms
+package com.wadiyatalkinabeet.gambit.domain.math.algorithms
+
+import kotlin.math.floor
 
 const val MAX = Int.MAX_VALUE
 val rand = java.util.Random()
@@ -24,7 +26,7 @@ fun partition(list:IntArray, left: Int, right:Int, pivotIndex: Int): Int {
 
 tailrec fun quickSelect(list: IntArray, left: Int, right: Int, k: Int): Int {
     if (left == right) return list[left]
-    var pivotIndex = left + Math.floor((rand.nextInt(MAX) % (right - left + 1)).toDouble()).toInt()
+    var pivotIndex = left + floor((rand.nextInt(MAX) % (right - left + 1)).toDouble()).toInt()
     pivotIndex = partition(list, left, right, pivotIndex)
     if (k == pivotIndex)
         return list[k]

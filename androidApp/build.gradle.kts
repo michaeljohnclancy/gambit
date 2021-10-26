@@ -7,9 +7,9 @@ plugins {
 dependencies {
     implementation(project(":shared"))
 
-    val composeVersion = "1.0.2"
+    val composeVersion = "1.0.4"
     val activityComposeVersion = "1.3.1"
-    val lifecycleViewModelComposeVersion = "2.4.0-beta01"
+    val lifecycleViewModelComposeVersion = "2.4.0-rc01"
 
     implementation("androidx.appcompat:appcompat:1.3.1")
 
@@ -32,7 +32,7 @@ dependencies {
     //Integration between Compose and cameraX
 
     implementation("com.github.skgmn:startactivityx:1.2.0")
-    implementation("com.github.skgmn:cameraxx-composable:0.6.1")
+    implementation("com.github.skgmn:cameraxx-composable:0.7.1")
 
     implementation("com.github.h0tk3y.geometry:geometry:v0.1")
 

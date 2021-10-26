@@ -1,0 +1,7 @@
+package = org.opencv.core
+language = Objective-C
+headers = /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Core.h
+headerFilter = /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/*.h
+compilerOpts = -F/Users/mclancy/Documents/gambit/libs/opencv2.framework
+linkerOpts = -F/Users/mclancy/Documents/gambit/libs/opencv2.framework
+

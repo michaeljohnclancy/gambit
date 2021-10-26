@@ -1,6 +1,6 @@
 package com.wadiyatalkinabeet.gambit.math.statistics.clustering
 
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 
 private enum class Type {
     CORE, REACHABLE, OUTLIER

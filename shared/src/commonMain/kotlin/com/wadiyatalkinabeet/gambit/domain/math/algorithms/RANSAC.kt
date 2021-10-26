@@ -1,6 +1,7 @@
-package com.wadiyatalkinabeet.gambit.math.algorithms
+package com.wadiyatalkinabeet.gambit.domain.math.algorithms
 
 import com.wadiyatalkinabeet.gambit.domain.cv.*
+import com.wadiyatalkinabeet.gambit.math.algorithms.meshGrid
 import java.lang.IndexOutOfBoundsException
 import java.lang.NullPointerException
 import kotlin.math.abs
@@ -8,21 +9,22 @@ import kotlin.math.roundToInt
 
 
 private fun warpPoint(
-    x: Double,
-    y: Double,
-    z: Double,
+    x: Float,
+    y: Float,
+    z: Float,
     transformationMatrix: Mat
-): Triple<Double, Double, Double> {
+): Triple<Float, Float, Float> {
 
-    val warpedX = (x * transformationMatrix.get(0,0)[0]) + (y * transformationMatrix.get(0,1)[0]) + (z * transformationMatrix.get(0,2)[0])
-    val warpedY = (x * transformationMatrix.get(1,0)[0]) + (y * transformationMatrix.get(1,1)[0]) + (z * transformationMatrix.get(1,2)[0])
-    val warpedZ = (x * transformationMatrix.get(2,0)[0]) + (y * transformationMatrix.get(2,1)[0]) + (z * transformationMatrix.get(2,2)[0])
+    // TODO: Matrix multiplication could be handled by OpenCV, no need for manual
+    val warpedX = (x * transformationMatrix[0,0][0]) + (y * transformationMatrix[0, 1][0]) + (z * transformationMatrix[0, 2][0])
+    val warpedY = (x * transformationMatrix[1, 0][0]) + (y * transformationMatrix[1, 1][0]) + (z * transformationMatrix[1, 2][0])
+    val warpedZ = (x * transformationMatrix[2, 0][0]) + (y * transformationMatrix[2, 1][0]) + (z * transformationMatrix[2, 2][0])
 
     return Triple(warpedX, warpedY, warpedZ)
 }
 
 fun warpPoint(cornerPoint: Point, transformationMat: Mat): Point{
-    val (warpedX, warpedY, _) = warpPoint(cornerPoint.x, cornerPoint.y, 1.0, transformationMat)
+    val (warpedX, warpedY, _) = warpPoint(cornerPoint.x, cornerPoint.y, 1.0f, transformationMat)
     return Point(warpedX, warpedY)
 }
 
@@ -35,7 +37,7 @@ fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMat: Mat)
     for (i in intersectionPoints.indices){
         for (j in intersectionPoints[i].indices){
             intersectionPoints[i][j]?.let {
-                val (warpedX, warpedY, _) = warpPoint(it.x, it.y, 1.0, transformationMat)
+                val (warpedX, warpedY, _) = warpPoint(it.x, it.y, 1f, transformationMat)
                 warpedPoints[i][j] = Point(warpedX, warpedY)
             }
         }
@@ -106,7 +108,7 @@ private fun discardOutliers(
     return Pair(Pair(rowsToKeep,colsToKeep), Pair(ascendingScales[bestXScaleIndex], ascendingScales[bestYScaleIndex]))
 }
 
-private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectionPoints: Array<Array<Point?>>): RANSACResults{
+private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectionPoints: Array<Array<Point?>>): RANSACResults {
     val xSumAlongCols = mutableMapOf<Int, Double>()
     val ySumAlongRows = mutableMapOf<Int, Double>()
     for (i in warpedScaledPoints.indices){
@@ -169,13 +171,13 @@ private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectio
             quantizedPointGrid.second[i][j] -= (yMin - 5f)
             quantizedPointGrid.second[i][j] *= 50f
 
-            quantizedPoints[i][j] = Point(quantizedPointGrid.first[i][j].toDouble(), quantizedPointGrid.second[i][j].toDouble())
+            quantizedPoints[i][j] = Point(quantizedPointGrid.first[i][j], quantizedPointGrid.second[i][j])
         }
     }
 
     xMax = xMax-xMin+5
     yMax = yMax-yMin+5
-    val warpedImageSize = Size(50.0 * (xMax + 5), 50.0 * (yMax + 5))
+    val warpedImageSize = Size(50 * (xMax + 5), 50 * (yMax + 5))
 
     return RANSACResults(
         xMax= xMax, yMax = yMax,
@@ -189,21 +191,26 @@ fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACResults? {
     var bestNumInliers = 0
     var bestRansacConfig: RANSACResults? = null
     var epoch = 0
+
     while (bestNumInliers < 30 || epoch < 200) {
 
         val rowIndices = intersectionPoints.indices.shuffled().take(2).sorted()
         val colIndices = intersectionPoints[0].indices.shuffled().take(2).sorted()
 
         val homographyMat = findHomography(
-            MatOfPoint2f(
-                intersectionPoints[rowIndices[0]][colIndices[0]],
-                intersectionPoints[rowIndices[0]][colIndices[1]],
-                intersectionPoints[rowIndices[1]][colIndices[1]],
-                intersectionPoints[rowIndices[1]][colIndices[0]],
+            MatOfPoint2(
+                listOf(
+                    intersectionPoints[rowIndices[0]][colIndices[0]]!!,
+                    intersectionPoints[rowIndices[0]][colIndices[1]]!!,
+                    intersectionPoints[rowIndices[1]][colIndices[1]]!!,
+                    intersectionPoints[rowIndices[1]][colIndices[0]]!!,
+                )
             ),
-            MatOfPoint2f(
-                Point(0.0, 0.0), Point(1.0, 0.0),
-                Point(1.0, 1.0), Point(0.0, 1.0)
+            MatOfPoint2(
+                listOf(
+                    Point(0f, 0f), Point(1f, 0f),
+                    Point(1f, 1f), Point(0f, 1f)
+                )
             )
         )
 
@@ -279,7 +286,7 @@ data class RANSACResults(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (other == null || this::class != other::class) return false
 
         other as RANSACResults
 
@@ -288,7 +295,7 @@ data class RANSACResults(
         if (yMin != other.yMin) return false
         if (yMax != other.yMax) return false
         if (scale != other.scale) return false
-        if (!quantizedPoints.contentEquals(other.quantizedPoints)) return false
+        if (!quantizedPoints.contentDeepEquals(other.quantizedPoints)) return false
         if (!intersectionPoints.contentDeepEquals(other.intersectionPoints)) return false
         if (warpedImageSize != other.warpedImageSize) return false
 
@@ -306,5 +313,4 @@ data class RANSACResults(
         result = 31 * result + warpedImageSize.hashCode()
         return result
     }
-
 }

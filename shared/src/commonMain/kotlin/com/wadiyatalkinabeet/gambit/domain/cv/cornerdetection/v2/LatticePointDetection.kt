@@ -3,7 +3,7 @@ package com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2
 import com.wadiyatalkinabeet.gambit.domain.cv.Point
 import com.wadiyatalkinabeet.gambit.math.algorithms.MeshgridIndex
 import com.wadiyatalkinabeet.gambit.math.algorithms.meshGrid
-import com.wadiyatalkinabeet.gambit.math.datastructures.Line
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
 
 import kotlin.math.cos
 import kotlin.math.sin
@@ -38,8 +38,8 @@ fun intersection(
     val sin1 = sin(theta2)
     return try {
         Point(
-            (sin0 * rho2 - sin1 * rho1) / (cos1 * sin0 - cos0 * sin1).toDouble(),
-            (cos0 * rho2 - cos1 * rho1) / (sin1 * cos0 - sin0 * cos1).toDouble()
+            (sin0 * rho2 - sin1 * rho1) / (cos1 * sin0 - cos0 * sin1),
+            (cos0 * rho2 - cos1 * rho1) / (sin1 * cos0 - sin0 * cos1)
         )
     } catch (_: ArithmeticException) {
         null

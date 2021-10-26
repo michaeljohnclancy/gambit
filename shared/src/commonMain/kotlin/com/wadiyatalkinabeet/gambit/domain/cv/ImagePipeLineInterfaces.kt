@@ -1,7 +1,7 @@
 package com.wadiyatalkinabeet.gambit.domain.cv
 
-import com.wadiyatalkinabeet.gambit.math.datastructures.Point
-import com.wadiyatalkinabeet.gambit.math.datastructures.Segment
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
+import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 
 
 internal interface StraightLineDetector {
