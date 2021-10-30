@@ -10,7 +10,6 @@ class DetectBoardUseCase() {
 
     operator fun invoke(sourceMat: Mat): Resource<ImageAnalysisState> {
         val imageAnalysisState = ImageAnalysisState(sourceMat)
-        require(sourceMat.type() == CV_8UC1)
 
         val detectedLines = detectLines(sourceMat, eliminateDiagonals = false)
         if (detectedLines.size <= 2) {

@@ -7,6 +7,7 @@ import com.wadiyatalkinabeet.gambit.domain.math.algorithms.warpPoint
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.inverse
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.toMat
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.toMatrix
+import org.opencv.core.CvType.CV_32FC1
 
 fun detectCorners(
     ransacResults: RANSACResults,
@@ -103,7 +104,7 @@ private fun computeVerticalBorders(
     scale: Pair<Int, Int>, xMin: Int, xMax: Int
 ): Pair<Int, Int>{
     val resultMat = Mat()
-    sobel(warpedGrayscaleMat, resultMat, CV_64F, 1, 0, 3)
+    sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 1, 0, 3)
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
@@ -115,6 +116,7 @@ private fun computeVerticalBorders(
     }
     resultMat.convertTo(resultMat, CV_8UC1)
     canny(resultMat, resultMat, 120.0, 300.0, 3)
+    resultMat.convertTo(resultMat, CV_32FC1)
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
@@ -161,7 +163,7 @@ private fun computeHorizontalBorders(
     scale: Pair<Int, Int>, yMin: Int, yMax: Int
 ): Pair<Int, Int>{
     val resultMat = Mat()
-    sobel(warpedGrayscaleMat, resultMat, CV_64F, 0, 1, 3)
+    sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 0, 1, 3)
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
@@ -173,6 +175,7 @@ private fun computeHorizontalBorders(
     }
     resultMat.convertTo(resultMat, CV_8UC1)
     canny(resultMat, resultMat, 120.0, 300.0, 3)
+    resultMat.convertTo(resultMat, CV_32FC1)
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
@@ -214,7 +217,7 @@ private fun computeHorizontalBorders(
     return Pair(yMinScaled, yMaxScaled)
 }
 
-fun makeBorderMat(size: Size, type: Int = CV_8UC1, borderThickness: Int = 3): Mat{
+fun makeBorderMat(size: Size, type: Int = CV_32FC1, borderThickness: Int = 3): Mat{
     val bordersMat = Mat.zeros(size, type)
     for (i in 3 until bordersMat.rows()-borderThickness){
         for (j in 3 until bordersMat.cols()-borderThickness){

@@ -1,6 +1,6 @@
 package com.wadiyatalkinabeet.gambit.domain.math.datastructures
 
-import com.wadiyatalkinabeet.gambit.domain.cv.CV_64F
+import com.wadiyatalkinabeet.gambit.domain.cv.CV_32FC1
 import com.wadiyatalkinabeet.gambit.domain.cv.Mat
 
 
@@ -88,7 +88,7 @@ fun Mat.toMatrix(): Matrix2D {
 }
 
 fun Matrix2D.toMat(): Mat {
-    var mat = Mat(this.size, this[0].size, CV_64F)
+    val mat = Mat(this.size, this[0].size, CV_32FC1)
     for (i in this.indices) {
         for (j in this[i].indices) {
             mat[i, j] = floatArrayOf(this[i][j])

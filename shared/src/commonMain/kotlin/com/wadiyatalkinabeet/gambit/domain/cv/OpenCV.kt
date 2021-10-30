@@ -2,20 +2,22 @@ package com.wadiyatalkinabeet.gambit.domain.cv
 
 import com.wadiyatalkinabeet.gambit.domain.math.algorithms.quickSelect
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Line
+import java.nio.ByteBuffer
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
 
 const val COLOR_BGR2GRAY = 6
 const val CV_8UC1 = 0
-const val CV_64F = 6
+const val CV_32FC1 = 5
+const val CV_64FC1 = 6
 
 expect class Mat(){
     companion object {
         fun zeros(size: Size, type: Int): Mat
     }
 
-    constructor(width: Int, height: Int, type: Int, byteArray: ByteArray? = null)
+    constructor(width: Int, height: Int, type: Int, byteBuffer: ByteBuffer? = null)
 
     operator fun get(row: Int, col: Int): FloatArray
     operator fun set(row: Int, col: Int, value: FloatArray)

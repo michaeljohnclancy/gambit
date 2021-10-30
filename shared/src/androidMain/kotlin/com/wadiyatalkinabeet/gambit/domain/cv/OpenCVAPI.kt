@@ -11,6 +11,7 @@ import org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE
 import org.opencv.imgcodecs.Imgcodecs.imread
 import org.opencv.imgproc.Imgproc
 import java.nio.ByteBuffer
+import kotlin.math.roundToInt
 
 fun initOpenCV() {
     OpenCVLoader.initDebug()
@@ -25,9 +26,9 @@ actual open class Mat {
     constructor(nativeMat: org.opencv.core.Mat) {
         this.nativeMat = nativeMat
     }
-    actual constructor(width: Int, height: Int, type: Int, byteArray: ByteArray?) {
-        nativeMat = byteArray?.let {
-            org.opencv.core.Mat(width, height, type, ByteBuffer.wrap(it))
+    actual constructor(width: Int, height: Int, type: Int, byteBuffer: ByteBuffer?) {
+        nativeMat = byteBuffer?.let {
+            org.opencv.core.Mat(width, height, type, it)
         } ?: org.opencv.core.Mat(width, height, type)
     }
 
@@ -38,7 +39,7 @@ actual open class Mat {
         nativeMat.put(row, col, value)
     }
 
-    actual fun size(): Size = nativeMat.size() as Size
+    actual fun size(): Size = nativeMat.size().let { Size(it.width.roundToInt(), it.height.roundToInt()) }
     actual fun type(): Int = nativeMat.type()
     actual fun width(): Int = nativeMat.width()
     actual fun height(): Int = nativeMat.height()
@@ -158,7 +159,7 @@ fun Image.toMat(grayscale: Boolean = false): Mat {
 actual fun imread(path: String) = Mat(imread(path, IMREAD_GRAYSCALE))
 
 private fun Image.toGrayscaleMat(): Mat {
-    return Mat(height, width, CvType.CV_8UC1, planes[0].buffer.array())
+    return Mat(height, width, CvType.CV_8UC1, planes[0].buffer)
 }
 
 private fun Image.toRGBMat(): Mat {
