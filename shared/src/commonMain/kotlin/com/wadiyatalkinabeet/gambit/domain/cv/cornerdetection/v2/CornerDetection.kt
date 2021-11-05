@@ -7,7 +7,7 @@ import com.wadiyatalkinabeet.gambit.domain.math.algorithms.warpPoint
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.inverse
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.toMat
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.toMatrix
-import org.opencv.core.CvType.CV_32FC1
+import com.wadiyatalkinabeet.gambit.domain.cv.CV_32FC1
 
 fun detectCorners(
     ransacResults: RANSACResults,

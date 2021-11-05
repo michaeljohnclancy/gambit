@@ -1,6 +1,5 @@
 package com.wadiyatalkinabeet.gambit.domain.cv
 
-import android.graphics.ImageFormat
 import android.media.Image
 import org.opencv.android.OpenCVLoader
 import org.opencv.calib3d.Calib3d
@@ -11,6 +10,7 @@ import org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE
 import org.opencv.imgcodecs.Imgcodecs.imread
 import org.opencv.imgproc.Imgproc
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.roundToInt
 
 fun initOpenCV() {
@@ -26,10 +26,21 @@ actual open class Mat {
     constructor(nativeMat: org.opencv.core.Mat) {
         this.nativeMat = nativeMat
     }
-    actual constructor(width: Int, height: Int, type: Int, byteBuffer: ByteBuffer?) {
-        nativeMat = byteBuffer?.let {
-            org.opencv.core.Mat(width, height, type, it)
+    actual constructor(width: Int, height: Int, type: Int, byteArray: ByteArray?) {
+        /*
+        The following code should convert a ByteArray into a buffer but something's wrong.
+        For Android-side uses, the alternative constructor below takes a buffer directly.
+        */
+        nativeMat = byteArray?.let {
+            val buffer = ByteBuffer.allocateDirect(it.size).apply {
+                this.order(ByteOrder.LITTLE_ENDIAN)
+                this.put(it)
+            }
+            org.opencv.core.Mat(width, height, type, buffer)
         } ?: org.opencv.core.Mat(width, height, type)
+    }
+    constructor(width: Int, height: Int, type: Int, byteBuffer: ByteBuffer) {
+        nativeMat = org.opencv.core.Mat(width, height, type, byteBuffer)
     }
 
     actual operator fun get(row: Int, col: Int): FloatArray =
@@ -160,6 +171,15 @@ actual fun imread(path: String) = Mat(imread(path, IMREAD_GRAYSCALE))
 
 private fun Image.toGrayscaleMat(): Mat {
     return Mat(height, width, CvType.CV_8UC1, planes[0].buffer)
+//    val buffer = planes[0].buffer
+//    val array = if (buffer.hasArray()) {
+//        buffer.array()
+//    } else {
+//        ByteArray(buffer.capacity()).apply {
+//            buffer.get(this)
+//        }
+//    }
+//    return Mat(width, height, CvType.CV_8UC1, array)
 }
 
 private fun Image.toRGBMat(): Mat {

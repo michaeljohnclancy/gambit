@@ -17,8 +17,8 @@ actual open class Mat{
     constructor(nativeMat: org.opencv.Mat) {
         this.nativeMat = nativeMat
     }
-    actual constructor(width: Int, height: Int, type: Int, byteBuffer: ByteBuffer?) {
-        nativeMat = byteBuffer?.let {
+    actual constructor(width: Int, height: Int, type: Int, byteArray: ByteArray?) {
+        nativeMat = byteArray?.let {
             org.opencv.Mat(width, height, type, it.toNSData())
         } ?: org.opencv.Mat(width, height, type)
     }

@@ -136,16 +136,15 @@ fun ImageAnalysisOverlay(
                     cvToScreenCoords(
                         matSize
                     ) {
-//                        it.data?.horizontalLines
-//                            .map { line -> line.toSegment() }
-//                            .let { lines -> drawSegments(lines, Color.Red, 2f) }
-//                        it.data?.verticalLines
-//                            .map { line -> line.toSegment() }
-//                            .let { lines -> drawSegments(lines, Color.Green, 2f) }
+                        it.data?.horizontalLines
+                            ?.map { line -> line.toSegment() }
+                            ?.let { lines -> drawSegments(lines, Color.Red, 2f) }
+                        it.data?.verticalLines
+                            ?.map { line -> line.toSegment() }
+                            ?.let { lines -> drawSegments(lines, Color.Green, 2f) }
                         it.data?.cornerPoints
                             ?.run { drawPointOverlay(this) }
                     }
-//                    it.data?.cornerPoints?.run { drawPointOverlay(this, screenSize, matSize) }
                 }
                 is Resource.Error -> {
 
@@ -160,7 +159,6 @@ fun DrawScope.cvToScreenCoords(
     matSize: Size,
     block: DrawScope.() -> Unit
 ) {
-
     val scale = size.width / matSize.height
     drawContext.transform.scale(scale, scale, Offset(0f, 0f))
     drawContext.transform.rotate(90f, Offset(0f, 0f))

@@ -7,7 +7,6 @@ import com.wadiyatalkinabeet.gambit.domain.math.algorithms.RANSACException
 import com.wadiyatalkinabeet.gambit.domain.math.algorithms.runRANSAC
 
 class DetectBoardUseCase() {
-
     operator fun invoke(sourceMat: Mat): Resource<ImageAnalysisState> {
         val imageAnalysisState = ImageAnalysisState(sourceMat)
 
@@ -30,6 +29,9 @@ class DetectBoardUseCase() {
             )
         }
 
+        imageAnalysisState.horizontalLines = horizontalLines
+        imageAnalysisState.verticalLines = verticalLines
+
         val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
         if (allIntersectionPoints.size * allIntersectionPoints[0].size < 4) {
             return Resource.Error(
@@ -50,6 +52,12 @@ class DetectBoardUseCase() {
         }
 
         imageAnalysisState.cornerPoints = detectCorners(ransacResults, sourceMat, imageAnalysisState.scale)
+//        imageAnalysisState.cornerPoints = allIntersectionPoints.flatMap { points ->
+//            points.mapNotNull { it?.let {
+//                    com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point(it.x, it.y)
+//                }
+//            }
+//        }
 
         return Resource.Success(imageAnalysisState)
     }
