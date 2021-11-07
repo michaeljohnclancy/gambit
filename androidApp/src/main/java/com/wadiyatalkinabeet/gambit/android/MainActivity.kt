@@ -8,11 +8,15 @@ import androidx.fragment.app.FragmentActivity
 import com.github.skgmn.startactivityx.listenPermissionStatus
 import com.wadiyatalkinabeet.gambit.android.ui.theme.CameraViewTheme
 import android.Manifest
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.github.skgmn.startactivityx.PermissionRequest
 import com.github.skgmn.startactivityx.requestPermissions
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import kotlinx.coroutines.launch
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @ExperimentalAnimationApi
 class MainActivity : FragmentActivity() {
@@ -20,7 +24,16 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
+
+            val systemUiController = rememberSystemUiController()
+
+            val useDarkIcons = false //MaterialTheme.colors.isLight
+            SideEffect {
+                systemUiController.setSystemBarsColor(Color.Transparent, darkIcons = useDarkIcons)
+            }
+
             CameraViewTheme {
                MainScreen(
                    viewModel = viewModel,

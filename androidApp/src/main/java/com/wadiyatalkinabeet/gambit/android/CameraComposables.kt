@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -20,6 +21,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
@@ -42,6 +44,20 @@ fun MainScreen(
         .permissionsInitiallyRequestedState.collectAsState(initial = false)
 
     if (permissionStatus?.granted == true){
+        Box(
+            modifier = Modifier
+                .zIndex(10f)
+                .fillMaxWidth()
+                .height(100.dp)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.7f),
+                            Color.Transparent
+                        ),
+                    )
+                )
+        )
         CameraLayer(viewModel = viewModel)
         ImageAnalysisOverlay(viewModel = viewModel)
     }
@@ -60,7 +76,7 @@ private fun CameraLayer(
     CameraPreview(
         modifier = Modifier.fillMaxSize(),
         preview = preview,
-        scaleType = PreviewView.ScaleType.FIT_START,
+        scaleType = PreviewView.ScaleType.FILL_CENTER,
         imageAnalysis = imageAnalysis
     )
 }
@@ -159,10 +175,10 @@ fun DrawScope.cvToScreenCoords(
     matSize: Size,
     block: DrawScope.() -> Unit
 ) {
-    val scale = size.width / matSize.height
+    val scale = size.height / matSize.width
     drawContext.transform.scale(scale, scale, Offset(0f, 0f))
     drawContext.transform.rotate(90f, Offset(0f, 0f))
-    drawContext.transform.translate(0f, -matSize.height)
+    drawContext.transform.translate(0f, -matSize.height * 0.85f)
     block()
 // Uncomment for debug rect
 // Top: Black
@@ -186,7 +202,7 @@ fun DrawScope.cvToScreenCoords(
 //        listOf(Segment(matSize.width, 0f, matSize.width, matSize.height)),
 //        Color.White, 5f
 //    )
-    drawContext.transform.translate(0f, matSize.height)
+    drawContext.transform.translate(0f, matSize.height * 0.85f)
     drawContext.transform.rotate(-90f, Offset(0f, 0f))
     drawContext.transform.scale(1/scale, 1/scale, Offset(0f, 0f))
 }

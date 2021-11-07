@@ -10,6 +10,7 @@ dependencies {
     val composeVersion = "1.0.4"
     val activityComposeVersion = "1.3.1"
     val lifecycleViewModelComposeVersion = "2.4.0-rc01"
+    val accompanistVersion = "0.19.0"
 
     implementation("androidx.appcompat:appcompat:1.3.1")
 
@@ -30,6 +31,10 @@ dependencies {
     // Integration with ViewModels
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleViewModelComposeVersion")
     //Integration between Compose and cameraX
+
+    // Accompanist
+    implementation("com.google.accompanist:accompanist-insets:$accompanistVersion")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
 
     implementation("com.github.skgmn:startactivityx:1.2.0")
     implementation("com.github.skgmn:cameraxx-composable:0.7.1")
