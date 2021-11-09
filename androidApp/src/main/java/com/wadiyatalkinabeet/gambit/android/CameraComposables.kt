@@ -8,10 +8,8 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
@@ -30,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.navigationBarsWithImePadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import com.wadiyatalkinabeet.gambit.Resource
@@ -66,6 +65,9 @@ private fun ViewFinder(
     // Camera view with overlay
     CameraLayer(viewModel = viewModel)
     ImageAnalysisOverlay(viewModel = viewModel)
+
+    // Tooltip
+    Tooltip("Point your phone at a chessboard")
 
     // Status bar shadow
     Box(
@@ -107,6 +109,29 @@ private fun ViewFinder(
 }
 
 fun lerp(start: Float, end: Float, fraction: Float) = start * (1f - fraction) + end * fraction
+
+@Composable
+private fun Tooltip(
+    text: String
+) {
+    Box(
+        Modifier.fillMaxSize()
+            .navigationBarsWithImePadding()
+            .padding(bottom=24.dp)
+    ) {
+        Surface(
+            Modifier.align(Alignment.BottomCenter),
+            color = Color.Black.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Text(
+                text,
+                Modifier.padding(horizontal=24.dp, vertical=12.dp),
+                color = Color.White
+            )
+        }
+    }
+}
 
 @Composable
 private fun Reticle(
