@@ -13,7 +13,7 @@ private fun warpPoint(
 ): Triple<Float, Float, Float> {
 
     // TODO: Matrix multiplication could be handled by OpenCV, no need for manual
-    val warpedX = (x * transformationMatrix[0,0][0]) + (y * transformationMatrix[0, 1][0]) + (z * transformationMatrix[0, 2][0])
+    val warpedX = (x * transformationMatrix[0, 0][0]) + (y * transformationMatrix[0, 1][0]) + (z * transformationMatrix[0, 2][0])
     val warpedY = (x * transformationMatrix[1, 0][0]) + (y * transformationMatrix[1, 1][0]) + (z * transformationMatrix[1, 2][0])
     val warpedZ = (x * transformationMatrix[2, 0][0]) + (y * transformationMatrix[2, 1][0]) + (z * transformationMatrix[2, 2][0])
 
@@ -29,7 +29,7 @@ fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMat: Mat)
     val warpedPoints = Array(intersectionPoints.size) {
         Array<Point?>(
             intersectionPoints[0].size
-        ) {null}
+        ) { null }
     }
     for (i in intersectionPoints.indices){
         for (j in intersectionPoints[i].indices){
@@ -279,7 +279,7 @@ data class RANSACResults(
     val quantizedPoints: Array<Array<Point?>>,
     val intersectionPoints: Array<Array<Point?>>,
     val warpedImageSize: Size
-    ){
+){
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

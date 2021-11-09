@@ -7,6 +7,7 @@ typealias Vector = Point
 class Point(val x: Float, val y: Float): Comparable<Point> {
 
     val length: Float by lazy { sqrt(x.pow(2) + y.pow(2)) }
+    val normalized: Point by lazy { this / this.length }
 
     override fun compareTo(other: Point): Int {
         if (x == other.x) return y.compareTo(other.y)
@@ -21,12 +22,20 @@ class Point(val x: Float, val y: Float): Comparable<Point> {
         return Point(this.x + point2.x, this.y + point2.y)
     }
 
+    operator fun unaryMinus(): Point {
+        return Point(-this.x, -this.y)
+    }
+
     operator fun minus(point2: Point): Point {
         return Point(this.x - point2.x, this.y - point2.y)
     }
 
     operator fun times(scale: Float): Point {
-        return Point(scale * x, scale * y)
+        return Point(x * scale, y * scale)
+    }
+
+    operator fun div(scale: Float): Point {
+        return Point(x / scale, y / scale)
     }
 
     fun dot(point2: Point): Float {

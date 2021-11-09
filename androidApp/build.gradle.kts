@@ -7,16 +7,17 @@ plugins {
 dependencies {
     implementation(project(":shared"))
 
-    val composeVersion = "1.0.4"
+//    val composeVersion = "1.0.5"
+    val composeVersion = "1.1.0-alpha01"
     val activityComposeVersion = "1.3.1"
     val lifecycleViewModelComposeVersion = "2.4.0-rc01"
-    val accompanistVersion = "0.19.0"
+    val accompanistVersion = "0.20.2"
 
     implementation("androidx.appcompat:appcompat:1.3.1")
 
     implementation("androidx.compose.ui:ui:$composeVersion")
     // Tooling support (Previews, etc.)
-    implementation("androidx.compose.ui:ui-tooling:$composeVersion")
+//    implementation("androidx.compose.ui:ui-tooling:$composeVersion")
     // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
     implementation("androidx.compose.foundation:foundation:$composeVersion")
     // Material Design
@@ -26,6 +27,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:$composeVersion")
     // Animations
     implementation("androidx.compose.animation:animation:$composeVersion")
+    implementation("androidx.compose.animation:animation-graphics:$composeVersion")
     // Integration with activities
     implementation("androidx.activity:activity-compose:$activityComposeVersion")
     // Integration with ViewModels
@@ -40,8 +42,6 @@ dependencies {
     implementation("com.github.skgmn:cameraxx-composable:0.7.1")
 
     implementation("com.github.h0tk3y.geometry:geometry:v0.1")
-
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVersion")
 }
 
 android {

@@ -1,36 +1,44 @@
 package com.wadiyatalkinabeet.gambit.android
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.*
+import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PointMode
+import androidx.compose.ui.geometry.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
+import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.systemBarsPadding
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import com.wadiyatalkinabeet.gambit.Resource
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 import kotlinx.coroutines.flow.Flow
 
-
+@ExperimentalAnimationGraphicsApi
 @SuppressLint("CoroutineCreationDuringComposition")
 @ExperimentalAnimationApi
 @Composable
@@ -44,25 +52,127 @@ fun MainScreen(
         .permissionsInitiallyRequestedState.collectAsState(initial = false)
 
     if (permissionStatus?.granted == true){
-        Box(
-            modifier = Modifier
-                .zIndex(10f)
-                .fillMaxWidth()
-                .height(100.dp)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.7f),
-                            Color.Transparent
-                        ),
-                    )
-                )
-        )
-        CameraLayer(viewModel = viewModel)
-        ImageAnalysisOverlay(viewModel = viewModel)
+        ViewFinder(viewModel)
     }
     if (permissionInitiallyRequested && permissionStatus?.denied == true) {
         PermissionLayer(onRequestCameraPermission)
+    }
+}
+
+@ExperimentalAnimationGraphicsApi
+@Composable
+private fun ViewFinder(
+    viewModel: CameraPreviewViewModel
+) {
+    val context = LocalContext.current
+
+    // Camera view with overlay
+    CameraLayer(viewModel = viewModel)
+    ImageAnalysisOverlay(viewModel = viewModel)
+
+    // Status bar shadow
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(with(LocalDensity.current) {
+                (3 * LocalWindowInsets.current.systemBars.top).toDp()
+            })
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Black.copy(alpha = 0.75f),
+                        Color.Transparent
+                    ),
+                )
+            )
+    )
+
+    // Back button
+    IconButton(
+        onClick = {
+            Toast.makeText(
+                context,
+                "Can't go back",
+                Toast.LENGTH_SHORT
+            ).show()
+        },
+        modifier = Modifier
+            .systemBarsPadding()
+            .padding(12.dp)
+    ) {
+        Icon(
+            Icons.Filled.ArrowBack,
+            "Back",
+            tint = Color.White,
+            modifier = Modifier.size(40.dp)
+        )
+    }
+}
+
+fun lerp(start: Float, end: Float, fraction: Float) = start * (1f - fraction) + end * fraction
+
+@Composable
+private fun Reticle(
+    points: List<Point>, matSize: Size
+){
+    val pulseAnim = rememberInfiniteTransition()
+    val glowScale by pulseAnim.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, 0, LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    val auraScale by pulseAnim.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, 1000, FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    Canvas(Modifier.fillMaxSize()) {
+        fun quadPath(points: List<Point>, r: Float, scale: Float) = Path().apply {
+            //TODO Corner radius
+            val c = points.fold(Point(0f, 0f)) { a, b -> a + b } / 4f
+            val ps = points.map {
+                it + (it - c) * scale
+            }
+            moveTo(ps[0].x, ps[0].y)
+            lineTo(ps[1].x, ps[1].y)
+            lineTo(ps[2].x, ps[2].y)
+            lineTo(ps[3].x, ps[3].y)
+            close()
+        }
+
+        val r = 60f
+        val mainPaint = Paint().apply{
+            style = PaintingStyle.Stroke
+            strokeWidth = 6f
+            color = Color.White
+            alpha = 0.5f
+        }
+        val auraPaint = Paint().apply{
+            style = PaintingStyle.Stroke
+            strokeWidth = lerp(6f, 0f, auraScale)
+            color = Color.White
+            alpha = lerp(0f, 0.5f, glowScale)
+        }
+
+        val mainSquare = quadPath(points, r, 0f)
+        val auraSquare = quadPath(
+            points,
+            lerp(r, r * 1.5f, auraScale),
+            lerp(0f, 0.2f, auraScale),
+        )
+        cvToScreenCoords(matSize) {
+            drawIntoCanvas {
+                it.drawPath(path = mainSquare, paint = mainPaint)
+                it.drawPath(path = auraSquare, paint = auraPaint)
+            }
+        }
     }
 }
 
@@ -81,53 +191,6 @@ private fun CameraLayer(
     )
 }
 
-//@Composable
-//fun LatticeOverlayLayer(
-//    viewModel: CameraPreviewViewModel
-//) {
-//    val latticeLines by viewModel
-//        .getLatticeLines().collectAsState(initial = null)
-//
-//    val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
-//
-//        Canvas(modifier = Modifier.fillMaxSize()) {
-//            val screenSize = Pair(size.width.toInt(), size.height.toInt())
-//            val matSize = Pair(imageAnalysisResolution.width, imageAnalysisResolution.height)
-//            latticeLines?.let {
-//                drawSegments(
-//                    g = this,
-//                    segments = it.first.map { line ->
-//                        line.toSegment().cvToScreenCoords(screenSize, matSize)
-//                    },
-//                    color = Color.Red,
-//                    strokeWidth = 5f
-//                )
-//                drawSegments(
-//                    g = this,
-//                    segments = it.second.map { line ->
-//                        line.toSegment().cvToScreenCoords(screenSize, matSize)
-//                    },
-//                    color = Color.Green,
-//                    strokeWidth = 5f
-//                )
-//
-//                val latticePoints = it.first.flatMap { horizontal ->
-//                    it.second.mapNotNull { vertical ->
-//                        horizontal.intersection(vertical)
-//                    }
-//                }.map { point -> point.cvToScreenCoords(screenSize, matSize)
-//                }.map { point -> Offset(point.x, point.y) }
-//
-//                drawPoints(
-//                    latticePoints,
-//                    PointMode.Points,
-//                    Color.Blue,
-//                    12f
-//                )
-//            }
-//        }
-//}
-
 @Composable
 fun ImageAnalysisOverlay(
     viewModel: CameraPreviewViewModel
@@ -137,12 +200,24 @@ fun ImageAnalysisOverlay(
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val matSize = Size(
-            imageAnalysisResolution.width.toFloat(),
-            imageAnalysisResolution.height.toFloat()
-        )
+    val lineColor = Color.White.copy(alpha=0.7f)
 
+    val matSize = Size(
+        imageAnalysisResolution.width.toFloat(),
+        imageAnalysisResolution.height.toFloat()
+    )
+
+    // Location of reticule corners when no real corners are available
+    val defaultPoints = listOf(
+            Point(-1f, -1f), Point(-1f, 1f),
+            Point(1f, 1f), Point(1f, -1f)
+        ).map { sign ->
+            Point(matSize.width / 2, matSize.height / 2) + sign * (matSize.height / 5f)
+        }
+
+    var points by remember { mutableStateOf (defaultPoints) }
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
         imageAnalysisResult?.let {
             when (it){
                 is Resource.Loading -> {
@@ -154,21 +229,23 @@ fun ImageAnalysisOverlay(
                     ) {
                         it.data?.horizontalLines
                             ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, Color.Red, 2f) }
+                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
                         it.data?.verticalLines
                             ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, Color.Green, 2f) }
-                        it.data?.cornerPoints
-                            ?.run { drawPointOverlay(this) }
+                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
+//                        it.data?.cornerPoints
+//                            ?.run { drawPointOverlay(this) }
+                        it.data?.cornerPoints?.let{ points = it }
                     }
                 }
                 is Resource.Error -> {
-
+                    points = defaultPoints
                 }
             }
         }
-
     }
+
+    Reticle(points, matSize)
 }
 
 fun DrawScope.cvToScreenCoords(
@@ -178,7 +255,8 @@ fun DrawScope.cvToScreenCoords(
     val scale = size.height / matSize.width
     drawContext.transform.scale(scale, scale, Offset(0f, 0f))
     drawContext.transform.rotate(90f, Offset(0f, 0f))
-    drawContext.transform.translate(0f, -matSize.height * 0.85f)
+    //TODO The approximate decimal number below needs an exact equation
+    drawContext.transform.translate(0f, -matSize.height * 0.815f)
     block()
 // Uncomment for debug rect
 // Top: Black
@@ -202,7 +280,7 @@ fun DrawScope.cvToScreenCoords(
 //        listOf(Segment(matSize.width, 0f, matSize.width, matSize.height)),
 //        Color.White, 5f
 //    )
-    drawContext.transform.translate(0f, matSize.height * 0.85f)
+    drawContext.transform.translate(0f, matSize.height * 0.815f)
     drawContext.transform.rotate(-90f, Offset(0f, 0f))
     drawContext.transform.scale(1/scale, 1/scale, Offset(0f, 0f))
 }
@@ -214,8 +292,8 @@ fun DrawScope.drawPointOverlay(cornerPoints: List<Point>) =
             drawPoints(
                 it,
                 PointMode.Points,
-                Color.Blue,
-                12f
+                Color(0f, 0f, 0f, 0.5f),
+                6f
             )
         }
 
