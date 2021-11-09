@@ -14,6 +14,8 @@ version = "1.0"
 kotlin {
     android()
 
+
+    //This is a temporary fix, should be able to use shared target ios() in future versions of Gradle Kotlin plugin
     val iosTarget: (String, KotlinNativeTarget.() -> Unit) -> KotlinNativeTarget = when {
         System.getenv("SDK_NAME")?.startsWith("iphoneos") == true -> ::iosArm64
         System.getenv("NATIVE_ARCH")?.startsWith("arm") == true -> ::iosSimulatorArm64
@@ -22,48 +24,25 @@ kotlin {
 
     iosTarget("ios") {
         compilations.getByName("main") {
-            val openCVInterop by cinterops.creating {
-                defFile(project.file("src/nativeInterop/cinterop/OpenCV.def"))
-
-                includeDirs {
-                    allHeaders("/Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers")
-                }
-                extraOpts = listOf("-compiler-option", "-DNS_FORMAT_ARGUMENT(A)=")
+//            fetchOpenCVIOS()
+            val opencv2 by cinterops.creating {
+                //Can remove -DNS_FORMAT_ARGUMENT(A)= when 1.6.0 kotlin compiler released
+                compilerOpts("-framework", "opencv2", "-F$rootDir/lib/", "-DNS_FORMAT_ARGUMENT(A)=")
             }
-//            val openCVCoreInterop by cinterops.creating {
-//                defFile(project.file("src/nativeInterop/cinterop/OpenCVCore.def"))
-//
-//                includeDirs {
-//                    allHeaders("/Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers")
-//                }
-//                extraOpts = listOf("-compiler-option", "-DNS_FORMAT_ARGUMENT(A)=")
-//            }
-//            val openCVImgprocInterop by cinterops.creating {
-//                defFile(project.file("src/nativeInterop/cinterop/OpenCVImgproc.def"))
-//
-//                includeDirs {
-//                    allHeaders("/Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers")
-//                }
-//                extraOpts = listOf("-compiler-option", "-DNS_FORMAT_ARGUMENT(A)=")
-//            }
         }
     }
 
     cocoapods {
         ios.deploymentTarget = "14.1"
         framework {
-            summary = "Gambit shared library"
+            summary = "gambit shared library"
             homepage = "https://kt.wadiyatalkinabeet.com/gambit"
             baseName = "shared"
             isStatic = false
             podfile = project.file  ("../iosApp/Podfile")
         }
-//        specRepos {
-//            url("https://github.com/michaeljohnclancy/PodSpecs.git/")
-//        }
-
-        xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
-        xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
+//        xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
+//        xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
 
 //        pod("LegoCV")
     }
@@ -77,7 +56,7 @@ kotlin {
             dependencies {
                 implementation("com.github.h0tk3y.geometry:geometry:v0.1")
                 implementation("com.github.h0tk3y.geometry:algorithms:v0.1")
-                implementation("com.google.android.play:core-ktx:1.8.1")
+//                implementation("com.google.android.play:core-ktx:1.8.1")
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
@@ -106,7 +85,7 @@ kotlin {
 
                 implementation("com.quickbirdstudios:opencv:4.5.3.0")
 
-                implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-rc01")
+                implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
 
                 implementation("androidx.camera:camera-core:$cameraxVersion")
                 implementation("androidx.camera:camera-camera2:$cameraxVersion")
@@ -128,8 +107,6 @@ kotlin {
 
                 implementation("androidx.test:runner:1.4.0")
                 implementation("androidx.test:rules:1.4.0")
-
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.0")
             }
 
             tasks.withType<Test> {

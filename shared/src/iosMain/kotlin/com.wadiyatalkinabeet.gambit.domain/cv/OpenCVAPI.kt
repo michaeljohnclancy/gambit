@@ -4,36 +4,36 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.usePinned
-import org.opencv.*
+import opencv2.*
 import platform.Foundation.*
 import platform.posix.memcpy
 
 actual open class Mat{
 
-    val nativeMat: org.opencv.Mat
+    val nativeMat: opencv2.Mat
     actual constructor() {
-        nativeMat = org.opencv.Mat()
+        nativeMat = opencv2.Mat()
     }
-    constructor(nativeMat: org.opencv.Mat) {
+    constructor(nativeMat: opencv2.Mat) {
         this.nativeMat = nativeMat
     }
     actual constructor(width: Int, height: Int, type: Int, byteArray: ByteArray?) {
         nativeMat = byteArray?.let {
-            org.opencv.Mat(width, height, type, it.toNSData())
-        } ?: org.opencv.Mat(width, height, type)
+            opencv2.Mat(width, height, type, it.toNSData())
+        } ?: opencv2.Mat(width, height, type)
     }
 
     actual operator fun get(row: Int, col: Int): FloatArray = (nativeMat.get(row, col) as List<Float>).toFloatArray()
     actual operator fun set(row: Int, col: Int, value: FloatArray) { nativeMat.put(row, col, value.toList()) }
 
     actual fun reshape(channels: Int, rows: Int): Mat = Mat(nativeMat.reshape(channels, rows))
-    actual fun convertTo(resultMat: Mat, type: Int) = nativeMat.convertTo(resultMat.nativeMat, type)
+    actual fun convertTo(resultMat: Mat, type: Int): Unit = nativeMat.convertTo(resultMat.nativeMat, type)
     actual fun row(rowIndex: Int): Mat = Mat(nativeMat.row(rowIndex))
     actual fun col(colIndex: Int): Mat = Mat(nativeMat.col(colIndex))
 
 
     actual companion object {
-        actual fun zeros(size: Size, type: Int): Mat = Mat(org.opencv.Mat.zeros(size, type))
+        actual fun zeros(size: Size, type: Int): Mat = Mat(opencv2.Mat.zeros(size, type))
     }
 
     actual fun size(): Size = nativeMat.size()
@@ -47,12 +47,12 @@ actual open class Mat{
 actual data class Point actual constructor(actual val x: Float, actual val y: Float)
 actual data class Point3 actual constructor(actual val x: Float, actual val y: Float, actual val z: Float)
 
-actual class MatOfPoint2 actual constructor(points: List<Point>): org.opencv.MatOfPoint2f(points)
-actual class MatOfPoint3 actual constructor(points: List<Point3>): org.opencv.MatOfPoint3f(points)
+actual class MatOfPoint2 actual constructor(points: List<Point>): opencv2.MatOfPoint2f(points)
+actual class MatOfPoint3 actual constructor(points: List<Point3>): opencv2.MatOfPoint3f(points)
 
 actual typealias Size = Size2i
 
-actual fun multiply(src1: Mat, src2: Mat, dst: Mat) = Core.multiply(src1.nativeMat, src2.nativeMat, dst.nativeMat)
+actual fun multiply(src1: Mat, src2: Mat, dst: Mat): Unit = Core.multiply(src1.nativeMat, src2.nativeMat, dst.nativeMat)
 //
 //actual fun gemm(src1: Mat, src2: MatOfPoint3f, alpha: Double, src3: Mat, beta: Double, dst: Mat) = Core.gemm(src1, src2, alpha, src3, beta, dst)
 //
@@ -63,7 +63,7 @@ actual fun canny(
     dst: Mat,
     lowerThreshold: Double,
     upperThreshold: Double,
-) =  Imgproc.Canny(src.nativeMat, dst.nativeMat, lowerThreshold, upperThreshold)
+): Unit =  Imgproc.Canny(src.nativeMat, dst.nativeMat, lowerThreshold, upperThreshold)
 //
 actual fun canny(
     src: Mat,
@@ -71,13 +71,13 @@ actual fun canny(
     lowerThreshold: Double,
     upperThreshold: Double,
     apertureSize: Int
-) = Imgproc.Canny(src.nativeMat, dst.nativeMat, lowerThreshold, upperThreshold)
+): Unit = Imgproc.Canny(src.nativeMat, dst.nativeMat, lowerThreshold, upperThreshold)
 //
 actual fun cvtColor(
     src: Mat,
     dst: Mat,
     colorOut: Int
-) = Imgproc.cvtColor(src.nativeMat, dst.nativeMat, colorOut)
+): Unit = Imgproc.cvtColor(src.nativeMat, dst.nativeMat, colorOut)
 
 actual fun houghLines(
     src: Mat,
@@ -85,26 +85,26 @@ actual fun houghLines(
     rho: Double,
     theta: Double,
     threshold: Int,
-) =  Imgproc.HoughLines(src.nativeMat, lines.nativeMat, rho, theta, threshold)
+): Unit =  Imgproc.HoughLines(src.nativeMat, lines.nativeMat, rho, theta, threshold)
 
 actual fun houghLinesP(
     src: Mat, lines: Mat,
     rho: Double, theta: Double,
     threshold: Int, minLineLength: Double,
     maxLineGap: Double
-) = Imgproc.HoughLinesP(src.nativeMat, lines.nativeMat, rho, theta, threshold, minLineLength, maxLineGap)
+): Unit = Imgproc.HoughLinesP(src.nativeMat, lines.nativeMat, rho, theta, threshold, minLineLength, maxLineGap)
 
 actual fun findHomography(
     srcPoints: MatOfPoint2,
     dstPoints: MatOfPoint2
-) = Mat(Calib3d.findHomography(srcPoints, dstPoints))
+): Mat = Mat(Calib3d.findHomography(srcPoints, dstPoints))
 
 actual fun warpPerspective(
     src: Mat,
     dst: Mat,
     transformationMatrix: Mat,
     dsize: Size
-) = Imgproc.warpPerspective(src.nativeMat, dst.nativeMat, transformationMatrix.nativeMat, dsize)
+): Unit = Imgproc.warpPerspective(src.nativeMat, dst.nativeMat, transformationMatrix.nativeMat, dsize)
 
 actual fun sobel(
     src: Mat,
@@ -113,26 +113,26 @@ actual fun sobel(
     dx: Int,
     dy: Int,
     kernelSize: Int
-) = Imgproc.Sobel(src.nativeMat, dst.nativeMat, ddepth, dx, dy, kernelSize)
+): Unit = Imgproc.Sobel(src.nativeMat, dst.nativeMat, ddepth, dx, dy, kernelSize)
 
 actual fun medianBlur(
     src: Mat,
     dst: Mat,
     kernelSize: Int
-) = Imgproc.medianBlur(src.nativeMat, dst.nativeMat, kernelSize)
+): Unit = Imgproc.medianBlur(src.nativeMat, dst.nativeMat, kernelSize)
 
 actual fun gaussianBlur(
     src: Mat, dst: Mat,
     kernelSize: Size, sigmaX: Double
-) = Imgproc.GaussianBlur(src.nativeMat, dst.nativeMat, kernelSize, sigmaX)
+): Unit = Imgproc.GaussianBlur(src.nativeMat, dst.nativeMat, kernelSize, sigmaX)
 
 actual fun resize(
     src: Mat,
     dst: Mat,
     dsize: Size
-) = Imgproc.resize(src.nativeMat, dst.nativeMat, dsize)
+): Unit = Imgproc.resize(src.nativeMat, dst.nativeMat, dsize)
 
-actual fun imread(path: String) = Mat(Imgcodecs.imread(path, IMREAD_GRAYSCALE))
+actual fun imread(path: String): Mat = Mat(Imgcodecs.imread(path, IMREAD_GRAYSCALE))
 
 fun NSData.toByteArray(): ByteArray =
     ByteArray(this@toByteArray.length.toInt()).apply {
@@ -168,8 +168,8 @@ fun ByteArray.toNSData() : NSData = memScoped {
 //    return if (grayscale) toGrayscaleMat() else toRGBMat()
 //}
 //
-//private fun Image.toGrayscaleMat(): org.opencv.core.Mat {
-//    return org.opencv.core.Mat(height, width, CvType.CV_8UC1, planes[0].buffer)
+//private fun Image.toGrayscaleMat(): opencv2.core.Mat {
+//    return opencv2.core.Mat(height, width, CvType.CV_8UC1, planes[0].buffer)
 //}
 //
 //private fun Image.toRGBMat(): Mat {

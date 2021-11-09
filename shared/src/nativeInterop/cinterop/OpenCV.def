@@ -1,4 +1,0 @@
-package = org.opencv
-language = Objective-C
-headers = /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/opencv2.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Core.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Imgproc.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Mat.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Imgcodecs.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/MatOfPoint2f.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/MatOfPoint3f.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Point3f.h /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Calib3d.h
-headerFilter = /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/*.h

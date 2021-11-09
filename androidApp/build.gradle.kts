@@ -7,8 +7,7 @@ plugins {
 dependencies {
     implementation(project(":shared"))
 
-//    val composeVersion = "1.0.5"
-    val composeVersion = "1.1.0-alpha01"
+    val composeVersion = "1.0.5"
     val activityComposeVersion = "1.3.1"
     val lifecycleViewModelComposeVersion = "2.4.0-rc01"
     val accompanistVersion = "0.20.2"
@@ -27,7 +26,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:$composeVersion")
     // Animations
     implementation("androidx.compose.animation:animation:$composeVersion")
-    implementation("androidx.compose.animation:animation-graphics:$composeVersion")
+//    implementation("androidx.compose.animation:animation-graphics:$composeVersion")
     // Integration with activities
     implementation("androidx.activity:activity-compose:$activityComposeVersion")
     // Integration with ViewModels
@@ -65,7 +64,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.1.0-alpha04"
+        kotlinCompilerExtensionVersion = "1.1.0-beta02"
     }
 
     compileOptions {

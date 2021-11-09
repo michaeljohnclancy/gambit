@@ -1,7 +1,0 @@
-package = org.opencv.imgproc
-language = Objective-C
-headers = /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/Imgproc.h
-headerFilter = /Users/mclancy/Documents/gambit/libs/opencv2.framework/Headers/*.h
-compilerOpts = -F/Users/mclancy/Documents/gambit/libs/opencv2.framework
-linkerOpts = -F/Users/mclancy/Documents/gambit/libs/opencv2.framework
-
