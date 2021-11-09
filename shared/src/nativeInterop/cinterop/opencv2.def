@@ -1,0 +1,4 @@
+language = Objective-C
+package = opencv2
+modules = opencv2
+excludeDependentModules = true

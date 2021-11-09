@@ -8,7 +8,6 @@ import androidx.fragment.app.FragmentActivity
 import com.github.skgmn.startactivityx.listenPermissionStatus
 import com.wadiyatalkinabeet.gambit.android.ui.theme.CameraViewTheme
 import android.Manifest
-import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
@@ -24,7 +23,6 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 class MainActivity : FragmentActivity() {
     private val viewModel: CameraPreviewViewModel by viewModels()
 
-    @ExperimentalAnimationGraphicsApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)

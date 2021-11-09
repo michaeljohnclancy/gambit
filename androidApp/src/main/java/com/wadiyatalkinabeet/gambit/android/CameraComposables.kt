@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.*
-import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,7 +37,6 @@ import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 import kotlinx.coroutines.flow.Flow
 
-@ExperimentalAnimationGraphicsApi
 @SuppressLint("CoroutineCreationDuringComposition")
 @ExperimentalAnimationApi
 @Composable
@@ -59,7 +57,6 @@ fun MainScreen(
     }
 }
 
-@ExperimentalAnimationGraphicsApi
 @Composable
 private fun ViewFinder(
     viewModel: CameraPreviewViewModel
