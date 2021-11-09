@@ -89,11 +89,7 @@ private fun ViewFinder(
     // Back button
     IconButton(
         onClick = {
-            Toast.makeText(
-                context,
-                "Can't go back",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(context, "Can't go back", Toast.LENGTH_SHORT).show()
         },
         modifier = Modifier
             .systemBarsPadding()
@@ -136,7 +132,7 @@ private fun Tooltip(
 @Composable
 private fun Reticle(
     points: List<Point>, matSize: Size
-){
+) {
     val pulseAnim = rememberInfiniteTransition()
     val glowScale by pulseAnim.animateFloat(
         initialValue = 0f,
@@ -194,7 +190,7 @@ private fun Reticle(
 @Composable
 private fun CameraLayer(
     viewModel: CameraPreviewViewModel
-){
+) {
     val preview by remember { mutableStateOf(viewModel.preview) }
     val imageAnalysis by viewModel.imageAnalysisUseCaseState.collectAsState()
 
@@ -307,8 +303,8 @@ fun DrawScope.drawPointOverlay(cornerPoints: List<Point>) =
             drawPoints(
                 it,
                 PointMode.Points,
-                Color(0f, 0f, 0f, 0.5f),
-                6f
+                Color(1f, 0f, 0f, 1f),
+                12f
             )
         }
 
