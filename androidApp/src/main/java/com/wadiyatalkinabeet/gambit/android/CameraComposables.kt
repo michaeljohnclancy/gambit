@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -131,8 +131,7 @@ private fun Reticle(
     )
 
     Canvas(Modifier.fillMaxSize()) {
-        fun quadPath(points: List<Point>, r: Float, scale: Float) = Path().apply {
-            //TODO Corner radius
+        fun quadPath(points: List<Point>, scale: Float) = Path().apply {
             val c = points.fold(Point(0f, 0f)) { a, b -> a + b } / 4f
             val ps = points.map {
                 it + (it - c) * scale
@@ -144,31 +143,25 @@ private fun Reticle(
             close()
         }
 
-        val r = 60f
-        val mainPaint = Paint().apply{
-            style = PaintingStyle.Stroke
-            strokeWidth = 6f
-            color = Color.White
-            alpha = 0.5f
-        }
-        val auraPaint = Paint().apply{
-            style = PaintingStyle.Stroke
-            strokeWidth = lerp(6f, 0f, auraScale)
-            color = Color.White
-            alpha = lerp(0f, 0.5f, glowScale)
-        }
-
-        val mainSquare = quadPath(points, r, 0f)
-        val auraSquare = quadPath(
-            points,
-            lerp(r, r * 1.5f, auraScale),
-            lerp(0f, 0.2f, auraScale),
+        val r = 20f
+        val mainStyle = Stroke(
+            width = 6f,
+            join = StrokeJoin.Round,
+            pathEffect = PathEffect.cornerPathEffect(r)
         )
+        val auraStyle = Stroke(
+            width = lerp(6f, 0f, auraScale),
+            join = StrokeJoin.Round,
+            pathEffect = PathEffect.cornerPathEffect(
+                lerp(r, r * 1.5f, auraScale)
+            )
+        )
+
+        val mainSquare = quadPath(points, 0f)
+        val auraSquare = quadPath(points, lerp(0f, 0.2f, auraScale))
         cvToScreenCoords(matSize) {
-            drawIntoCanvas {
-                it.drawPath(path = mainSquare, paint = mainPaint)
-                it.drawPath(path = auraSquare, paint = auraPaint)
-            }
+            drawPath(mainSquare, Color.White, 1.0f, mainStyle)
+            drawPath(auraSquare, Color.White, lerp(0f, 0.5f, glowScale), auraStyle)
         }
     }
 }
