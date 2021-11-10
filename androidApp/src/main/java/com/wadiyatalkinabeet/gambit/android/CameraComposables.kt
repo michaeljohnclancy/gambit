@@ -181,7 +181,7 @@ private fun Reticle(
         val mainSquare = quadPath(points, 0f)
         val auraSquare = quadPath(points, lerp(0f, 0.2f, auraScale))
         cvToScreenCoords(matSize) {
-            drawPath(mainSquare, Color.White, 1.0f, mainStyle)
+            drawPath(mainSquare, Color.White, 0.5f, mainStyle)
             drawPath(auraSquare, Color.White, lerp(0f, 0.5f, glowScale), auraStyle)
         }
     }
