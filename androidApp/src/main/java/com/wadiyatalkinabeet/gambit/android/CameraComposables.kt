@@ -32,6 +32,7 @@ import com.google.accompanist.insets.navigationBarsWithImePadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import com.wadiyatalkinabeet.gambit.Resource
+import com.wadiyatalkinabeet.gambit.domain.cv.TooManyFeaturesException
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 import kotlinx.coroutines.flow.Flow
@@ -65,9 +66,6 @@ private fun ViewFinder(
     // Camera view with overlay
     CameraLayer(viewModel = viewModel)
     ImageAnalysisOverlay(viewModel = viewModel)
-
-    // Tooltip
-    Tooltip("Point your phone at a chessboard")
 
     // Status bar shadow
     Box(
@@ -227,6 +225,8 @@ fun ImageAnalysisOverlay(
         }
 
     var points by remember { mutableStateOf<List<Point>?> (null) }
+    val defaultHint = "Point your camera at a chessboard"
+    var hintText by remember { mutableStateOf(defaultHint) }
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         imageAnalysisResult?.let { result ->
@@ -239,6 +239,16 @@ fun ImageAnalysisOverlay(
                         points = null
                     }
                 }
+
+            // Update hint
+            hintText = when(result) {
+                is Resource.Error -> when(result.throwable) {
+                    is TooManyFeaturesException -> "Avoid background clutter"
+                    else -> defaultHint
+                }
+                is Resource.Loading -> hintText
+                is Resource.Success -> "Scanning board..."
+            }
 
             // Draw debug lines/points
             cvToScreenCoords(
@@ -257,6 +267,8 @@ fun ImageAnalysisOverlay(
     }
 
     Reticle(points ?: defaultPoints, matSize)
+    Tooltip(hintText)
+
 }
 
 fun DrawScope.cvToScreenCoords(

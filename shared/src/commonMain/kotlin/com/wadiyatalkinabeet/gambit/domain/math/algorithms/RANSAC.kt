@@ -1,6 +1,7 @@
 package com.wadiyatalkinabeet.gambit.domain.math.algorithms
 
 import com.wadiyatalkinabeet.gambit.domain.cv.*
+import kotlinx.coroutines.yield
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -184,7 +185,7 @@ private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectio
     )
 }
 
-fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACResults? {
+suspend fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACResults? {
     var bestNumInliers = 0
     var bestRansacConfig: RANSACResults? = null
     var epoch = 0
@@ -248,6 +249,7 @@ fun runRANSAC(intersectionPoints: Array<Array<Point?>>): RANSACResults? {
         if (epoch > 1000){
             break
         }
+        yield()
     }
     return bestRansacConfig
 }
