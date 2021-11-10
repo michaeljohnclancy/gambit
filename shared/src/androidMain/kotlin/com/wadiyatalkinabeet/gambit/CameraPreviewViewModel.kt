@@ -40,6 +40,7 @@ class CameraPreviewViewModel: ViewModel(){
             .filterNotNull()
             .flowOn(Dispatchers.Default)
             .detectBoardUseCase()
+            .flowOn(Dispatchers.IO)
 
     @SuppressLint("UnsafeOptInUsageError")
     private fun ImageAnalysis.toMatFlow(grayscale: Boolean = true): Flow<Mat?> =

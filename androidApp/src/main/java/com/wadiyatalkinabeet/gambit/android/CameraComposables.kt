@@ -215,24 +215,37 @@ fun ImageAnalysisOverlay(
     var points by remember { mutableStateOf (defaultPoints) }
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        imageAnalysisResult?.let {
-            when (it){
+        imageAnalysisResult?.let { result ->
+            when (result){
                 is Resource.Loading -> {
+                    cvToScreenCoords(
+                        matSize
+                    ) {
+                        result.data?.horizontalLines
+                            ?.map { line -> line.toSegment() }
+                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
+                        result.data?.verticalLines
+                            ?.map { line -> line.toSegment() }
+                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
+//                        it.data?.cornerPoints
+//                            ?.run { drawPointOverlay(this) }
+                        result.data?.cornerPoints?.let{ points = it }
+                    }
 
                 }
                 is Resource.Success -> {
                     cvToScreenCoords(
                         matSize
                     ) {
-                        it.data?.horizontalLines
+                        result.data?.horizontalLines
                             ?.map { line -> line.toSegment() }
                             ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-                        it.data?.verticalLines
+                        result.data?.verticalLines
                             ?.map { line -> line.toSegment() }
                             ?.let { lines -> drawSegments(lines, lineColor, 2f) }
 //                        it.data?.cornerPoints
 //                            ?.run { drawPointOverlay(this) }
-                        it.data?.cornerPoints?.let{ points = it }
+                        result.data?.cornerPoints?.let{ points = it }
                     }
                 }
                 is Resource.Error -> {
