@@ -207,7 +207,7 @@ fun ImageAnalysisOverlay(
     viewModel: CameraPreviewViewModel
 ) {
     val imageAnalysisResult by viewModel
-        .getImageAnalysisResult().collectAsState(initial = null)
+        .imageAnalysisResult.collectAsState(initial = null)
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
