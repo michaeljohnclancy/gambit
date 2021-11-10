@@ -5,60 +5,87 @@ import com.wadiyatalkinabeet.gambit.domain.cv.*
 import com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2.*
 import com.wadiyatalkinabeet.gambit.domain.math.algorithms.RANSACException
 import com.wadiyatalkinabeet.gambit.domain.math.algorithms.runRANSAC
+import kotlinx.coroutines.flow.*
 
-class DetectBoardUseCase() {
-    operator fun invoke(sourceMat: Mat): Resource<ImageAnalysisState> {
-        val imageAnalysisState = ImageAnalysisState(sourceMat)
+fun Flow<Mat>.detectBoardUseCase(): Flow<Resource<ImageAnalysisState>> = transform { sourceMat ->
+    val imageAnalysisState = ImageAnalysisState(sourceMat)
 
-        val detectedLines = detectLines(sourceMat, eliminateDiagonals = false)
-        if (detectedLines.size <= 2) {
-            return Resource.Error(
+    val detectedLines = detectLines(sourceMat, eliminateDiagonals = false)
+    if (detectedLines.size > 2) {
+        emit(
+            Resource.Loading(
+                imageAnalysisState
+            )
+        )
+    } else {
+        emit(
+            Resource.Error(
                 NotEnoughFeaturesException("Not enough lines found!"),
                 imageAnalysisState
             )
-        }
+        )
+        return@transform
+    }
 
-        var (horizontalLines, verticalLines) = clusterLines(detectedLines)
+    var (horizontalLines, verticalLines) = clusterLines(detectedLines)
 
-        horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
-        verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
-        if (horizontalLines.size <= 2 || verticalLines.size <= 2) {
-            return Resource.Error(
+    horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
+    verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
+    if (horizontalLines.size > 2 && verticalLines.size > 2) {
+        imageAnalysisState.horizontalLines = horizontalLines
+        imageAnalysisState.verticalLines = verticalLines
+        emit(
+            Resource.Loading(
+                imageAnalysisState
+            )
+        )
+    } else {
+        emit(
+            Resource.Error(
                 NotEnoughFeaturesException("Not enough lines after elimination!"),
                 imageAnalysisState
             )
-        }
+        )
+        return@transform
+    }
 
-        imageAnalysisState.horizontalLines = horizontalLines
-        imageAnalysisState.verticalLines = verticalLines
-
-        val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
-        if (allIntersectionPoints.size * allIntersectionPoints[0].size < 4) {
-            return Resource.Error(
+    val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
+    if (allIntersectionPoints.size * allIntersectionPoints[0].size >= 4) {
+        emit(
+            Resource.Loading(
+                imageAnalysisState
+            )
+        )
+    } else {
+        emit(
+            Resource.Error(
                 NotEnoughFeaturesException("Not enough intersection points! (< 4)"),
                 imageAnalysisState
             )
-        }
+        )
+        return@transform
+    }
 
-        val ransacResults = try {
-            runRANSAC(allIntersectionPoints)
-        } catch (e: RANSACException) {
-            null
-        } ?: run {
-            return Resource.Error(
+    val ransacResults = try {
+        runRANSAC(allIntersectionPoints)
+    } catch (e: RANSACException) {
+        null
+    }
+
+    ransacResults?.let {
+        imageAnalysisState.cornerPoints = detectCorners(ransacResults, sourceMat, imageAnalysisState.scale)
+        emit(
+            Resource.Success(
+                imageAnalysisState
+            )
+        )
+    } ?: run {
+        emit(
+            Resource.Error(
                 NotEnoughFeaturesException("RANSAC failed!"),
                 imageAnalysisState
             )
-        }
-
-        imageAnalysisState.cornerPoints = detectCorners(ransacResults, sourceMat, imageAnalysisState.scale)
-//        imageAnalysisState.cornerPoints = allIntersectionPoints.flatMap { points ->
-//            points.mapNotNull { it?.let {
-//                    com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point(it.x, it.y)
-//                }
-//            }
-//        }
-
-        return Resource.Success(imageAnalysisState)
+        )
+        return@transform
     }
 }
