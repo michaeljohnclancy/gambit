@@ -226,50 +226,37 @@ fun ImageAnalysisOverlay(
             Point(matSize.width / 2, matSize.height / 2) + sign * (matSize.height / 5f)
         }
 
-    var points by remember { mutableStateOf (defaultPoints) }
+    var points by remember { mutableStateOf<List<Point>?> (null) }
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         imageAnalysisResult?.let { result ->
-            when (result){
-                is Resource.Loading -> {
-                    cvToScreenCoords(
-                        matSize
-                    ) {
-                        result.data?.horizontalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-                        result.data?.verticalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-//                        it.data?.cornerPoints
-//                            ?.run { drawPointOverlay(this) }
-                        result.data?.cornerPoints?.let{ points = it }
+            // Update `points` if new corner points are available
+            result.data?.cornerPoints
+                ?.let { points = it }
+                ?: run {
+                    // Keep old corners, unless an error occurred
+                    if (result is Resource.Error) {
+                        points = null
                     }
+                }
 
-                }
-                is Resource.Success -> {
-                    cvToScreenCoords(
-                        matSize
-                    ) {
-                        result.data?.horizontalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-                        result.data?.verticalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-//                        it.data?.cornerPoints
+            // Draw debug lines/points
+            cvToScreenCoords(
+                matSize
+            ) {
+                result.data?.horizontalLines
+                    ?.map { line -> line.toSegment() }
+                    ?.let { lines -> drawSegments(lines, lineColor, 2f) }
+                result.data?.verticalLines
+                    ?.map { line -> line.toSegment() }
+                    ?.let { lines -> drawSegments(lines, lineColor, 2f) }
+//                        result.data?.cornerPoints
 //                            ?.run { drawPointOverlay(this) }
-                        result.data?.cornerPoints?.let{ points = it }
-                    }
-                }
-                is Resource.Error -> {
-                    points = defaultPoints
-                }
             }
         }
     }
 
-    Reticle(points, matSize)
+    Reticle(points ?: defaultPoints, matSize)
 }
 
 fun DrawScope.cvToScreenCoords(
