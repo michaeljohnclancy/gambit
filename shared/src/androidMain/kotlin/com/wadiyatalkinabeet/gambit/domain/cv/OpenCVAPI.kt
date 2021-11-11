@@ -87,6 +87,14 @@ actual fun multiply(src1: Mat, src2: Mat, dst: Mat) =
 
 actual fun convertScaleAbs(src: Mat, dst: Mat) = Core.convertScaleAbs(src.nativeMat, dst.nativeMat)
 
+actual fun threshold(
+    src: Mat,
+    dst: Mat,
+    threshold: Double,
+    maxValue: Double,
+    type: ThresholdType
+): Double = Imgproc.threshold(src.nativeMat, dst.nativeMat, threshold, maxValue, type.id)
+
 //actual fun gemm(src1: Mat, src2: Mat, alpha: Double, src3: Mat, beta: Double, dst: Mat) = Core.gemm(src1, src2, alpha, src3, beta, dst)
 //
 //actual fun vector_Point2d_to_Mat(points: List<Point>): Mat = Converters.vector_Point2d_to_Mat(points)

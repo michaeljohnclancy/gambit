@@ -106,16 +106,9 @@ private fun computeVerticalBorders(
     val resultMat = Mat()
     sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 1, 0, 3)
     convertScaleAbs(resultMat, resultMat)
-    resultMat.convertTo(resultMat, CV_32FC1)
 
-    for (i in 0 until resultMat.rows()){
-        for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255f){
-                resultMat[i, j] = floatArrayOf(0f)
-            }
-        }
+    threshold(resultMat, resultMat, 254.0, 255.0, ThresholdType.THRESH_BINARY)
 
-    }
     resultMat.convertTo(resultMat, CV_8UC1)
     canny(resultMat, resultMat, 120.0, 300.0, 3)
     resultMat.convertTo(resultMat, CV_32FC1)
@@ -126,7 +119,6 @@ private fun computeVerticalBorders(
                 resultMat[i, j] = floatArrayOf(0f)
             }
         }
-
     }
 
     fun getNonMaxSuppressed(x: Int): Mat? {
@@ -167,16 +159,9 @@ private fun computeHorizontalBorders(
     val resultMat = Mat()
     sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 0, 1, 3)
     convertScaleAbs(resultMat, resultMat)
-    resultMat.convertTo(resultMat, CV_32FC1)
 
-    for (i in 0 until resultMat.rows()){
-        for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255f){
-                resultMat[i, j] = floatArrayOf(0f)
-            }
-        }
+    threshold(resultMat, resultMat, 254.0, 255.0, ThresholdType.THRESH_BINARY)
 
-    }
     resultMat.convertTo(resultMat, CV_8UC1)
     canny(resultMat, resultMat, 120.0, 300.0, 3)
     resultMat.convertTo(resultMat, CV_32FC1)
@@ -187,7 +172,6 @@ private fun computeHorizontalBorders(
                 resultMat[i, j] = floatArrayOf(0f)
             }
         }
-
     }
 
     fun getNonMaxSuppressed(y: Int): Mat? {
