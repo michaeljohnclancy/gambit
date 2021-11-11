@@ -94,7 +94,7 @@ fun detectCorners(
         ),
     ).map {
         com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point(
-            (it.x / scale).toFloat(), (it.y / scale).toFloat()
+            it.x, it.y
         )
     }
 }
