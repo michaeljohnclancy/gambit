@@ -37,17 +37,7 @@ class DetectBoardUseCaseTest{
         initOpenCV()
     }
 
-    private val testIds = 1..5
-
-//    private fun loadTestImage(id: Int): Pair<Mat, List<Point>> {
-//        val img: Mat = imread("src/commonTest/res/tagged_empty_boards/$id.jpg")
-//        val metadata = Json.decodeFromString<Metadata>(
-//            File("src/commonTest/res/tagged_empty_boards/$id.json").readText()
-//        )
-//        val corners = metadata.corners.asList.map { Point(it[0], it[1]) }
-//
-//        return Pair(img, corners)
-//    }
+    private val testIds = 1..10
 
     private fun assertApproxEquals(expected: List<Point>, actual: List<Point>) {
         val distances = expected.indices.map { Float.MAX_VALUE }.toMutableList()
@@ -67,17 +57,6 @@ class DetectBoardUseCaseTest{
             assert(it < EPSILON)
         }
     }
-
-//    @TestFactory
-//    fun checkCorrectCornersFound() = testIds.map { id ->
-//        dynamicTest("Test image #$id") {
-//            val (mat, corners) = loadTestImage(id)
-//            val detectBoardUseCase = DetectBoardUseCase()
-//            val result = detectBoardUseCase(mat)
-//
-//            assertApproxEquals(corners, result.data!!.cornerPoints!!)
-//        }
-//    }
 
     @TestFactory
     fun checkCorrectCornersFound() = testIds.map { id ->
