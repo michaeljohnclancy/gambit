@@ -62,6 +62,8 @@ expect class Size(width: Int, height: Int)
 
 expect fun multiply(src1: Mat, src2: Mat, dst: Mat)
 
+expect fun convertScaleAbs(src: Mat, dst: Mat)
+
 //expect fun gemm(src1: Mat, src2: Mat, alpha: Double, src3: Mat, beta: Double, dst: Mat)
 
 //expect fun vector_Point2d_to_Mat(points: List<Point>): Mat

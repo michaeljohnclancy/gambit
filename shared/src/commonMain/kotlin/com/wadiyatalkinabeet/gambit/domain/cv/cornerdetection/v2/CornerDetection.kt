@@ -105,6 +105,8 @@ private fun computeVerticalBorders(
 ): Pair<Int, Int>{
     val resultMat = Mat()
     sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 1, 0, 3)
+    convertScaleAbs(resultMat, resultMat)
+    resultMat.convertTo(resultMat, CV_32FC1)
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){
@@ -164,6 +166,8 @@ private fun computeHorizontalBorders(
 ): Pair<Int, Int>{
     val resultMat = Mat()
     sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 0, 1, 3)
+    convertScaleAbs(resultMat, resultMat)
+    resultMat.convertTo(resultMat, CV_32FC1)
 
     for (i in 0 until resultMat.rows()){
         for (j in 0 until resultMat.cols()){

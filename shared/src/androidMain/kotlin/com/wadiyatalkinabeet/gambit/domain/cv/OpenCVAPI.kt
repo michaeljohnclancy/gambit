@@ -6,8 +6,8 @@ import org.opencv.calib3d.Calib3d
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.MatOfPoint2f
-import org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE
-import org.opencv.imgcodecs.Imgcodecs.imread
+import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgcodecs.Imgcodecs.*
 import org.opencv.imgproc.Imgproc
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -84,6 +84,8 @@ actual class Size actual constructor(width: Int, height: Int): org.opencv.core.S
 
 actual fun multiply(src1: Mat, src2: Mat, dst: Mat) =
     Core.multiply(src1.nativeMat, src2.nativeMat, dst.nativeMat)
+
+actual fun convertScaleAbs(src: Mat, dst: Mat) = Core.convertScaleAbs(src.nativeMat, dst.nativeMat)
 
 //actual fun gemm(src1: Mat, src2: Mat, alpha: Double, src3: Mat, beta: Double, dst: Mat) = Core.gemm(src1, src2, alpha, src3, beta, dst)
 //
