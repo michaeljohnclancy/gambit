@@ -1,9 +1,15 @@
 package com.wadiyatalkinabeet.gambit.use_cases
 
+import com.wadiyatalkinabeet.gambit.Resource
 import com.wadiyatalkinabeet.gambit.domain.cv.Mat
 import com.wadiyatalkinabeet.gambit.domain.cv.imread
 import com.wadiyatalkinabeet.gambit.domain.cv.initOpenCV
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -25,23 +31,23 @@ data class Corners(
 @Serializable
 data class Metadata(val corners: Corners)
 
-internal class CornerDetectionKtTest{
+class DetectBoardUseCaseTest{
 
     init {
         initOpenCV()
     }
 
-    val testIds = 1..5
+    private val testIds = 1..5
 
-    private fun loadTestImage(id: Int): Pair<Mat, List<Point>> {
-        val img: Mat = imread("src/commonTest/res/tagged_empty_boards/$id.jpg")
-        val metadata = Json.decodeFromString<Metadata>(
-            File("src/commonTest/res/tagged_empty_boards/$id.json").readText()
-        )
-        val corners = metadata.corners.asList.map { Point(it[0], it[1]) }
-
-        return Pair(img, corners)
-    }
+//    private fun loadTestImage(id: Int): Pair<Mat, List<Point>> {
+//        val img: Mat = imread("src/commonTest/res/tagged_empty_boards/$id.jpg")
+//        val metadata = Json.decodeFromString<Metadata>(
+//            File("src/commonTest/res/tagged_empty_boards/$id.json").readText()
+//        )
+//        val corners = metadata.corners.asList.map { Point(it[0], it[1]) }
+//
+//        return Pair(img, corners)
+//    }
 
     private fun assertApproxEquals(expected: List<Point>, actual: List<Point>) {
         val distances = expected.indices.map { Float.MAX_VALUE }.toMutableList()
@@ -62,15 +68,44 @@ internal class CornerDetectionKtTest{
         }
     }
 
+//    @TestFactory
+//    fun checkCorrectCornersFound() = testIds.map { id ->
+//        dynamicTest("Test image #$id") {
+//            val (mat, corners) = loadTestImage(id)
+//            val detectBoardUseCase = DetectBoardUseCase()
+//            val result = detectBoardUseCase(mat)
+//
+//            assertApproxEquals(corners, result.data!!.cornerPoints!!)
+//        }
+//    }
+
     @TestFactory
     fun checkCorrectCornersFound() = testIds.map { id ->
-        dynamicTest("Test image #$id") {
-            val (mat, corners) = loadTestImage(id)
-            val detectBoardUseCase = DetectBoardUseCase()
-            val result = detectBoardUseCase(mat)
+            dynamicTest("Test image #$id") {
+                runBlocking {
+                    val expectedCorners = loadExpectedCorners(listOf(id))[0]
+                    val actualCorners = fakeMatFlow(listOf(id))
+                        .detectBoardUseCase()
+                        .filter { it is Resource.Success }
+                        .first()
+                        .data!!
+                        .cornerPoints!!
+                    assertApproxEquals(expectedCorners, actualCorners)
+                }
+            }
+        }
 
-            assertApproxEquals(corners, result.data!!.cornerPoints!!)
+    private fun fakeMatFlow(imageIDs: List<Int>): Flow<Mat> = flow {
+        for(id in imageIDs){
+            emit(imread("src/commonTest/res/tagged_empty_boards/$id.jpg"))
         }
     }
 
+    private fun loadExpectedCorners(imageIDs: List<Int>): List<List<Point>> =
+        imageIDs
+            .map { id ->
+                Json.decodeFromString<Metadata>(
+                    File("src/commonTest/res/tagged_empty_boards/$id.json").readText()
+                ).corners.asList.map { Point(it[0], it[1]) }
+            }
 }
