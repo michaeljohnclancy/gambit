@@ -167,7 +167,11 @@ fun Image.toMat(grayscale: Boolean = false): Mat {
     return if (grayscale) toGrayscaleMat() else toRGBMat()
 }
 
-actual fun imread(path: String) = Mat(imread(path, IMREAD_GRAYSCALE))
+actual fun imread(path: String) = Mat(Imgcodecs.imread(path, IMREAD_GRAYSCALE))
+
+actual fun imwrite(mat: Mat, filename: String) {
+    Imgcodecs.imwrite(filename, mat.nativeMat)
+}
 
 private fun Image.toGrayscaleMat(): Mat {
     return Mat(height, width, CvType.CV_8UC1, planes[0].buffer)

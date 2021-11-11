@@ -41,6 +41,8 @@ expect class Mat {
 
 expect fun imread(path: String): Mat
 
+expect fun imwrite(mat: Mat, filename: String): Unit
+
 expect class MatOfPoint2(points: List<Point>)
 
 expect class MatOfPoint3(points: List<Point3>)

@@ -134,6 +134,10 @@ actual fun resize(
 
 actual fun imread(path: String): Mat = Mat(Imgcodecs.imread(path, IMREAD_GRAYSCALE))
 
+actual fun imwrite(mat: Mat, filename: String) {
+    Imgcodecs.imwrite(filename, mat.nativeMat)
+}
+
 fun NSData.toByteArray(): ByteArray =
     ByteArray(this@toByteArray.length.toInt()).apply {
         usePinned {
