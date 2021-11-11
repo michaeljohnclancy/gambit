@@ -129,8 +129,16 @@ private fun Tooltip(
 
 @Composable
 private fun Reticle(
-    points: List<Point>, matSize: Size
+    points: List<Point>?, matSize: Size
 ) {
+    // Location of reticule corners when no real corners are available
+    val defaultPoints = listOf(
+        Point(-1f, -1f), Point(-1f, 1f),
+        Point(1f, 1f), Point(1f, -1f)
+    ).map { sign ->
+        Point(matSize.width / 2, matSize.height / 2) + sign * 20f//(matSize.height / 5f)
+    }
+
     val pulseAnim = rememberInfiniteTransition()
     val glowScale by pulseAnim.animateFloat(
         initialValue = 0f,
@@ -162,7 +170,7 @@ private fun Reticle(
             close()
         }
 
-        val r = 20f
+        val r = 10f
         val mainStyle = Stroke(
             width = 6f,
             join = StrokeJoin.Round,
@@ -172,12 +180,12 @@ private fun Reticle(
             width = lerp(6f, 0f, auraScale),
             join = StrokeJoin.Round,
             pathEffect = PathEffect.cornerPathEffect(
-                lerp(r, r * 1.5f, auraScale)
+                lerp(r, r * 4f, auraScale)
             )
         )
 
-        val mainSquare = quadPath(points, 0f)
-        val auraSquare = quadPath(points, lerp(0f, 0.2f, auraScale))
+        val mainSquare = quadPath(points ?: defaultPoints, 0f)
+        val auraSquare = quadPath(points ?: defaultPoints, lerp(0f, 4f, auraScale))
         cvToScreenCoords(matSize) {
             drawPath(mainSquare, Color.White, 0.5f, mainStyle)
             drawPath(auraSquare, Color.White, lerp(0f, 0.5f, glowScale), auraStyle)
@@ -215,14 +223,6 @@ fun ImageAnalysisOverlay(
         imageAnalysisResolution.width.toFloat(),
         imageAnalysisResolution.height.toFloat()
     )
-
-    // Location of reticule corners when no real corners are available
-    val defaultPoints = listOf(
-            Point(-1f, -1f), Point(-1f, 1f),
-            Point(1f, 1f), Point(1f, -1f)
-        ).map { sign ->
-            Point(matSize.width / 2, matSize.height / 2) + sign * (matSize.height / 5f)
-        }
 
     var points by remember { mutableStateOf<List<Point>?> (null) }
     val defaultHint = "Point your camera at a chessboard"
@@ -266,7 +266,7 @@ fun ImageAnalysisOverlay(
         }
     }
 
-    Reticle(points ?: defaultPoints, matSize)
+    Reticle(points, matSize)
     Tooltip(hintText)
 
 }
