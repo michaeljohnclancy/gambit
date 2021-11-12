@@ -63,6 +63,24 @@ class Point(val x: Float, val y: Float): Comparable<Point> {
         return MANHATTAN_DISTANCE_FUNC(this, that)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Point
+
+        if (x != other.x) return false
+        if (y != other.y) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = x.hashCode()
+        result = 31 * result + y.hashCode()
+        return result
+    }
+
     companion object {
         // < 0 : Counterclockwise
         // = 0 : p, q and r are colinear

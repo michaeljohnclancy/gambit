@@ -41,6 +41,8 @@ expect class Mat {
 
 expect fun imread(path: String): Mat
 
+expect fun imwrite(mat: Mat, filename: String): Unit
+
 expect class MatOfPoint2(points: List<Point>)
 
 expect class MatOfPoint3(points: List<Point3>)
@@ -60,6 +62,20 @@ expect class Size(width: Int, height: Int)
 
 expect fun multiply(src1: Mat, src2: Mat, dst: Mat)
 
+expect fun convertScaleAbs(src: Mat, dst: Mat)
+
+expect fun threshold(src: Mat, dst: Mat, threshold: Double, maxValue: Double, type: ThresholdType): Double
+
+enum class ThresholdType(val id: Int){
+    THRESH_BINARY(0),
+    THRESH_BINARY_INV(1),
+    THRESH_TRUNC(2),
+    THRESH_TOZERO(3),
+    THRESH_TOZERO_INV(4),
+    THRESH_MASK(5),
+    THRESH_OTSU(6),
+    THRESH_TRIANGLE(7)
+}
 //expect fun gemm(src1: Mat, src2: Mat, alpha: Double, src3: Mat, beta: Double, dst: Mat)
 
 //expect fun vector_Point2d_to_Mat(points: List<Point>): Mat

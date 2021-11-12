@@ -8,21 +8,19 @@ import kotlin.math.roundToInt
 private fun warpPoint(
     x: Float,
     y: Float,
-    z: Float,
     transformationMatrix: Mat
-): Triple<Float, Float, Float> {
+): Point {
 
     // TODO: Matrix multiplication could be handled by OpenCV, no need for manual
-    val warpedX = (x * transformationMatrix[0, 0][0]) + (y * transformationMatrix[0, 1][0]) + (z * transformationMatrix[0, 2][0])
-    val warpedY = (x * transformationMatrix[1, 0][0]) + (y * transformationMatrix[1, 1][0]) + (z * transformationMatrix[1, 2][0])
-    val warpedZ = (x * transformationMatrix[2, 0][0]) + (y * transformationMatrix[2, 1][0]) + (z * transformationMatrix[2, 2][0])
+    val warpedX = (x * transformationMatrix[0, 0][0]) + (y * transformationMatrix[0, 1][0]) + transformationMatrix[0, 2][0]
+    val warpedY = (x * transformationMatrix[1, 0][0]) + (y * transformationMatrix[1, 1][0]) + transformationMatrix[1, 2][0]
+    val warpedZ = (x * transformationMatrix[2, 0][0]) + (y * transformationMatrix[2, 1][0]) + transformationMatrix[2, 2][0]
 
-    return Triple(warpedX, warpedY, warpedZ)
+    return Point(warpedX / warpedZ, warpedY / warpedZ)
 }
 
 fun warpPoint(cornerPoint: Point, transformationMat: Mat): Point{
-    val (warpedX, warpedY, _) = warpPoint(cornerPoint.x, cornerPoint.y, 1.0f, transformationMat)
-    return Point(warpedX, warpedY)
+    return warpPoint(cornerPoint.x, cornerPoint.y, transformationMat)
 }
 
 fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMat: Mat): Array<Array<Point?>>{
@@ -34,8 +32,7 @@ fun warpPoints(intersectionPoints: Array<Array<Point?>>, transformationMat: Mat)
     for (i in intersectionPoints.indices){
         for (j in intersectionPoints[i].indices){
             intersectionPoints[i][j]?.let {
-                val (warpedX, warpedY, _) = warpPoint(it.x, it.y, 1f, transformationMat)
-                warpedPoints[i][j] = Point(warpedX, warpedY)
+                warpedPoints[i][j] = warpPoint(it.x, it.y, transformationMat)
             }
         }
     }
