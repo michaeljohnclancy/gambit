@@ -111,7 +111,7 @@ private fun Tooltip(
     Box(
         Modifier.fillMaxSize()
             .navigationBarsWithImePadding()
-            .padding(bottom=24.dp)
+            .padding(bottom = 24.dp)
     ) {
         Surface(
             Modifier.align(Alignment.BottomCenter),
@@ -129,15 +129,15 @@ private fun Tooltip(
 
 @Composable
 private fun Reticle(
-    points: List<Point>?, matSize: Size
+    new_points: List<Point>?, matSize: Size
 ) {
     // Constants
     val PULSE_TIME = 1000
     val RETICLE_RADIUS = 15f
     val CORNER_RADIUS = 10f
     val LINE_WIDTH = 6f
-    val AURA_SCALE = points?.run { 0.5f } ?: 8f
-    val BREATH_SCALE = points?.run { 0f } ?: 0.15f
+    val AURA_SCALE = new_points?.run { 0.5f } ?: 8f
+    val BREATH_SCALE = new_points?.run { 0f } ?: 0.15f
 
     // Function to generate rounded rectangles paths with perspective
     fun quadPath(points: List<Point>, scale: Float) = Path().apply {
@@ -157,6 +157,8 @@ private fun Reticle(
     ).map { sign ->
         Point(matSize.width / 2, matSize.height / 2) + sign * RETICLE_RADIUS
     }
+
+    val points = new_points ?: defaultPoints //TODO Animate
 
     // Animations
     val pulseAnim = rememberInfiniteTransition()
@@ -189,8 +191,8 @@ private fun Reticle(
 
     Canvas(Modifier.fillMaxSize()) {
         val mainScale = lerp(0f, BREATH_SCALE, glowScale)
-        val mainSquare = quadPath(points ?: defaultPoints, mainScale)
-        val auraSquare = quadPath(points ?: defaultPoints, lerp(mainScale, AURA_SCALE, auraScale))
+        val mainSquare = quadPath(points, mainScale)
+        val auraSquare = quadPath(points, lerp(mainScale, AURA_SCALE, auraScale))
         cvToScreenCoords(matSize) {
             drawPath(mainSquare, Color.White, 0.8f, mainStyle)
             drawPath(auraSquare, Color.White, lerp(0f, 0.5f, glowScale), auraStyle)
