@@ -131,63 +131,68 @@ private fun Tooltip(
 private fun Reticle(
     points: List<Point>?, matSize: Size
 ) {
+    // Constants
+    val PULSE_TIME = 1000
+    val RETICLE_RADIUS = 15f
+    val CORNER_RADIUS = 10f
+    val LINE_WIDTH = 6f
+    val AURA_SCALE = points?.run { 0.5f } ?: 8f
+    val BREATH_SCALE = points?.run { 0f } ?: 0.15f
+
+    // Function to generate rounded rectangles paths with perspective
+    fun quadPath(points: List<Point>, scale: Float) = Path().apply {
+        val centroid = points.fold(Point(0f, 0f)) { a, b -> a + b } / 4f
+        val ps = points.map { it + (it - centroid) * scale }
+        moveTo(ps[0].x, ps[0].y)
+        lineTo(ps[1].x, ps[1].y)
+        lineTo(ps[2].x, ps[2].y)
+        lineTo(ps[3].x, ps[3].y)
+        close()
+    }
+
     // Location of reticule corners when no real corners are available
     val defaultPoints = listOf(
         Point(-1f, -1f), Point(-1f, 1f),
         Point(1f, 1f), Point(1f, -1f)
     ).map { sign ->
-        Point(matSize.width / 2, matSize.height / 2) + sign * 20f//(matSize.height / 5f)
+        Point(matSize.width / 2, matSize.height / 2) + sign * RETICLE_RADIUS
     }
 
+    // Animations
     val pulseAnim = rememberInfiniteTransition()
     val glowScale by pulseAnim.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, 0, LinearEasing),
-            repeatMode = RepeatMode.Reverse
+        0f, 1f,
+        infiniteRepeatable(
+            tween(PULSE_TIME , 0, LinearEasing), RepeatMode.Reverse
         )
     )
     val auraScale by pulseAnim.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, 1000, FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
+        0f, 1f,
+        infiniteRepeatable(
+            tween(PULSE_TIME, PULSE_TIME, FastOutSlowInEasing), RepeatMode.Restart
+        )
+    )
+
+    // Path styles
+    val mainStyle = Stroke(
+        width = LINE_WIDTH,
+        join = StrokeJoin.Round,
+        pathEffect = PathEffect.cornerPathEffect(CORNER_RADIUS)
+    )
+    val auraStyle = Stroke(
+        width = lerp(LINE_WIDTH, 0f, auraScale),
+        join = StrokeJoin.Round,
+        pathEffect = PathEffect.cornerPathEffect(
+            lerp(CORNER_RADIUS, CORNER_RADIUS * AURA_SCALE * 2, auraScale)
         )
     )
 
     Canvas(Modifier.fillMaxSize()) {
-        fun quadPath(points: List<Point>, scale: Float) = Path().apply {
-            val c = points.fold(Point(0f, 0f)) { a, b -> a + b } / 4f
-            val ps = points.map {
-                it + (it - c) * scale
-            }
-            moveTo(ps[0].x, ps[0].y)
-            lineTo(ps[1].x, ps[1].y)
-            lineTo(ps[2].x, ps[2].y)
-            lineTo(ps[3].x, ps[3].y)
-            close()
-        }
-
-        val r = 10f
-        val mainStyle = Stroke(
-            width = 6f,
-            join = StrokeJoin.Round,
-            pathEffect = PathEffect.cornerPathEffect(r)
-        )
-        val auraStyle = Stroke(
-            width = lerp(6f, 0f, auraScale),
-            join = StrokeJoin.Round,
-            pathEffect = PathEffect.cornerPathEffect(
-                lerp(r, r * 4f, auraScale)
-            )
-        )
-
-        val mainSquare = quadPath(points ?: defaultPoints, 0f)
-        val auraSquare = quadPath(points ?: defaultPoints, lerp(0f, 4f, auraScale))
+        val mainScale = lerp(0f, BREATH_SCALE, glowScale)
+        val mainSquare = quadPath(points ?: defaultPoints, mainScale)
+        val auraSquare = quadPath(points ?: defaultPoints, lerp(mainScale, AURA_SCALE, auraScale))
         cvToScreenCoords(matSize) {
-            drawPath(mainSquare, Color.White, 0.5f, mainStyle)
+            drawPath(mainSquare, Color.White, 0.8f, mainStyle)
             drawPath(auraSquare, Color.White, lerp(0f, 0.5f, glowScale), auraStyle)
         }
     }
@@ -217,7 +222,7 @@ fun ImageAnalysisOverlay(
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
-    val lineColor = Color.White.copy(alpha=0.7f)
+    val lineColor = Color.White.copy(alpha=0.1f)
 
     val matSize = Size(
         imageAnalysisResolution.width.toFloat(),
