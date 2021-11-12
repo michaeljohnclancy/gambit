@@ -53,6 +53,17 @@ actual class MatOfPoint3 actual constructor(points: List<Point3>): opencv2.MatOf
 actual typealias Size = Size2i
 
 actual fun multiply(src1: Mat, src2: Mat, dst: Mat): Unit = Core.multiply(src1.nativeMat, src2.nativeMat, dst.nativeMat)
+
+actual fun convertScaleAbs(src: Mat, dst: Mat): Unit = Core.convertScaleAbs(src.nativeMat, dst.nativeMat)
+
+actual fun threshold(
+    src: Mat,
+    dst: Mat,
+    threshold: Double,
+    maxValue: Double,
+    type: ThresholdType
+): Double = Imgproc.threshold(src.nativeMat, dst.nativeMat, threshold, maxValue, type.id)
+
 //
 //actual fun gemm(src1: Mat, src2: MatOfPoint3f, alpha: Double, src3: Mat, beta: Double, dst: Mat) = Core.gemm(src1, src2, alpha, src3, beta, dst)
 //
@@ -133,6 +144,10 @@ actual fun resize(
 ): Unit = Imgproc.resize(src.nativeMat, dst.nativeMat, dsize)
 
 actual fun imread(path: String): Mat = Mat(Imgcodecs.imread(path, IMREAD_GRAYSCALE))
+
+actual fun imwrite(mat: Mat, filename: String) {
+    Imgcodecs.imwrite(filename, mat.nativeMat)
+}
 
 fun NSData.toByteArray(): ByteArray =
     ByteArray(this@toByteArray.length.toInt()).apply {
