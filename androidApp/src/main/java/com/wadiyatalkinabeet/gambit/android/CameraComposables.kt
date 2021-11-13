@@ -3,7 +3,7 @@ package com.wadiyatalkinabeet.gambit.android
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.camera.view.PreviewView
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -38,7 +39,6 @@ import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 import kotlinx.coroutines.flow.Flow
 
 @SuppressLint("CoroutineCreationDuringComposition")
-@ExperimentalAnimationApi
 @Composable
 fun MainScreen(
     viewModel: CameraPreviewViewModel,
@@ -58,6 +58,17 @@ fun MainScreen(
 }
 
 @Composable
+private fun HeaderButton(
+    description: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    IconButton(onClick, Modifier.padding(3.dp)) {
+        Icon(icon, description, Modifier.size(32.dp), Color.White)
+    }
+}
+
+@Composable
 private fun ViewFinder(
     viewModel: CameraPreviewViewModel
 ) {
@@ -67,12 +78,12 @@ private fun ViewFinder(
     CameraLayer(viewModel = viewModel)
     ImageAnalysisOverlay(viewModel = viewModel)
 
-    // Status bar shadow
+    // Header
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(with(LocalDensity.current) {
-                (3 * LocalWindowInsets.current.systemBars.top).toDp()
+                (4 * LocalWindowInsets.current.systemBars.top).toDp()
             })
             .background(
                 brush = Brush.verticalGradient(
@@ -82,23 +93,19 @@ private fun ViewFinder(
                     ),
                 )
             )
-    )
-
-    // Back button
-    IconButton(
-        onClick = {
-            Toast.makeText(context, "Can't go back", Toast.LENGTH_SHORT).show()
-        },
-        modifier = Modifier
-            .systemBarsPadding()
-            .padding(12.dp)
     ) {
-        Icon(
-            Icons.Filled.ArrowBack,
-            "Back",
-            tint = Color.White,
-            modifier = Modifier.size(40.dp)
-        )
+        Row (Modifier.fillMaxSize().systemBarsPadding().padding(12.dp)) {
+            HeaderButton("Back", Icons.Filled.Close) {
+                Toast.makeText(context, "Unimplemented", Toast.LENGTH_SHORT).show()
+            }
+            Spacer(Modifier.weight(1f))
+            HeaderButton("Flash", Icons.Filled.FlashOff) {
+                Toast.makeText(context, "Unimplemented", Toast.LENGTH_SHORT).show()
+            }
+            HeaderButton("Help", Icons.Filled.HelpOutline) {
+                Toast.makeText(context, "Unimplemented", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
 
@@ -108,22 +115,16 @@ fun lerp(start: Float, end: Float, fraction: Float) = start * (1f - fraction) + 
 private fun Tooltip(
     text: String
 ) {
-    Box(
-        Modifier.fillMaxSize()
-            .navigationBarsWithImePadding()
-            .padding(bottom = 24.dp)
+    Surface(
+        Modifier.animateContentSize(),
+        color = Color.Black.copy(alpha = 0.5f),
+        shape = RoundedCornerShape(12.dp),
     ) {
-        Surface(
-            Modifier.align(Alignment.BottomCenter),
-            color = Color.Black.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Text(
-                text,
-                Modifier.padding(horizontal=24.dp, vertical=12.dp),
-                color = Color.White
-            )
-        }
+        Text(
+            text,
+            Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+            color = Color.White
+        )
     }
 }
 
@@ -274,8 +275,15 @@ fun ImageAnalysisOverlay(
     }
 
     Reticle(points, matSize)
-    Tooltip(hintText)
-
+    Box(
+        Modifier
+            .fillMaxSize()
+            .navigationBarsWithImePadding()
+            .padding(bottom = 24.dp),
+        Alignment.BottomCenter
+    ) {
+        Tooltip(hintText)
+    }
 }
 
 fun DrawScope.cvToScreenCoords(
