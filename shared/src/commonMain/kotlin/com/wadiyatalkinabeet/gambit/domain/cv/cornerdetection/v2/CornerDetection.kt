@@ -48,6 +48,7 @@ fun detectCorners(
     val scaledXMin = ransacResults.scale.first * xMin
     val scaledXMax = ransacResults.scale.first * xMax
 
+
     for (i in 0 until warpedBordersMat.rows()) {
         for (j in 0 until warpedBordersMat.cols()) {
             if (i < scaledXMin || i > scaledXMax) {
@@ -107,60 +108,14 @@ private fun computeVerticalBorders(
     sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 1, 0, 3)
     convertScaleAbs(resultMat, resultMat)
 
-    threshold(resultMat, resultMat, 254.0, 255.0, ThresholdType.THRESH_BINARY)
-
-    resultMat.convertTo(resultMat, CV_8UC1)
-    canny(resultMat, resultMat, 120.0, 300.0, 3)
-    resultMat.convertTo(resultMat, CV_32FC1)
-
-    for (i in 0 until resultMat.rows()){
-        for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255f){
-                resultMat[i, j] = floatArrayOf(0f)
-            }
-        }
-    }
-
-    fun getNonMaxSuppressed(x: Int): Mat? {
-        val xScaled = x * scale.first
-
-        val colCounts = mutableMapOf<Int, Int>()
-        for (i in 0 until resultMat.rows()){
-            for (j in (xScaled-2 until xScaled+3)){
-                colCounts[j] = (colCounts[j] ?: 0)+1
-            }
-        }
-        return colCounts.filterKeys { 0 < it && it < resultMat.cols() }.maxByOrNull { it.value }?.let {
-            resultMat.col(it.key)
-        }
-    }
-
-    var xMaxScaled = xMax
-    var xMinScaled = xMin
-
-    while (xMaxScaled - xMinScaled < 8){
-        val top = getNonMaxSuppressed(xMaxScaled + 1) ?: run { throw ImageProcessingException("Failed to detect vertical borders")}
-        val bottom = getNonMaxSuppressed(xMinScaled - 1) ?: run { throw ImageProcessingException("Failed to detect vertical borders")}
-
-        if (top.toMatrix().map { it.sum() }.sum() > bottom.toMatrix().map { it.sum() }.sum()){
-            xMaxScaled += 1
-        } else{
-            xMinScaled -= 1
-        }
-    }
-
-    return Pair(xMinScaled, xMaxScaled)
-}
-
-private fun computeHorizontalBorders(
-    warpedGrayscaleMat: Mat, warpedBorderMat: Mat,
-    scale: Pair<Int, Int>, yMin: Int, yMax: Int
-): Pair<Int, Int>{
-    val resultMat = Mat()
-    sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 0, 1, 3)
-    convertScaleAbs(resultMat, resultMat)
-
-    threshold(resultMat, resultMat, 254.0, 255.0, ThresholdType.THRESH_BINARY)
+//    resultMat.convertTo(resultMat, CV_32FC1)
+//    for (i in 0 until resultMat.rows()){
+//        for (j in 0 until resultMat.cols()){
+//            if (warpedBorderMat[i, j][0] != 255f){
+//                resultMat[i, j] = floatArrayOf(0f)
+//            }
+//        }
+//    }
 
     resultMat.convertTo(resultMat, CV_8UC1)
     canny(resultMat, resultMat, 120.0, 300.0, 3)
@@ -177,10 +132,71 @@ private fun computeHorizontalBorders(
     fun getNonMaxSuppressed(y: Int): Mat? {
         val yScaled = y * scale.second
 
-        val rowCounts = mutableMapOf<Int, Int>()
-        for (i in (yScaled-2 until yScaled+3) ){
+        val colCounts = mutableMapOf<Int, Float>()
+        for (i in 0 until resultMat.rows()){
+            for (j in (yScaled-2 until yScaled+3) ){
+                colCounts[j] = (colCounts[j] ?: 0f) + resultMat[i,j][0]
+            }
+        }
+        return colCounts.filterKeys { 0 < it && it < resultMat.cols() }.maxByOrNull { it.value }?.let {
+            resultMat.col(it.key)
+        }
+    }
+
+    var xMaxCorrected = xMax
+    var xMinCorrected = xMin
+
+    while (xMaxCorrected - xMinCorrected < 8){
+        val top = getNonMaxSuppressed(xMaxCorrected + 1) ?: run { throw ImageProcessingException("Failed to detect vertical borders")}
+        val bottom = getNonMaxSuppressed(xMinCorrected - 1) ?: run { throw ImageProcessingException("Failed to detect vertical borders")}
+
+        if (top.toMatrix().map { it.sum() }.sum() > bottom.toMatrix().map { it.sum() }.sum()){
+            xMaxCorrected += 1
+        } else{
+            xMinCorrected -= 1
+        }
+    }
+
+    return Pair(xMinCorrected, xMaxCorrected)
+}
+
+private fun computeHorizontalBorders(
+    warpedGrayscaleMat: Mat, warpedBorderMat: Mat,
+    scale: Pair<Int, Int>, yMin: Int, yMax: Int
+): Pair<Int, Int>{
+    val resultMat = Mat()
+    sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 0, 1, 3)
+    convertScaleAbs(resultMat, resultMat)
+
+//    resultMat.convertTo(resultMat, CV_32FC1)
+//    for (i in 0 until resultMat.rows()){
+//        for (j in 0 until resultMat.cols()){
+//            if (warpedBorderMat[i, j][0] != 255f){
+//                resultMat[i, j] = floatArrayOf(0f)
+//            }
+//        }
+//    }
+
+    resultMat.convertTo(resultMat, CV_8UC1)
+    canny(resultMat, resultMat, 120.0, 300.0, 3)
+    resultMat.convertTo(resultMat, CV_32FC1)
+
+    for (i in 0 until resultMat.rows()){
+        for (j in 0 until resultMat.cols()){
+            if (warpedBorderMat[i, j][0] != 255f){
+                resultMat[i, j] = floatArrayOf(0f)
+            }
+        }
+    }
+
+
+    fun getNonMaxSuppressed(x: Int): Mat? {
+        val xScaled = x * scale.first
+
+        val rowCounts = mutableMapOf<Int, Float>()
+        for (i in (xScaled-2 until xScaled+3)){
             for (j in 0 until resultMat.cols()){
-                rowCounts[i] = (rowCounts[i] ?: 0) + 1
+                rowCounts[i] = (rowCounts[i] ?: 0f) + resultMat[i,j][0]
             }
         }
         return rowCounts.filterKeys { 0 < it && it < resultMat.rows() }.maxByOrNull { it.value }?.let {
@@ -188,27 +204,27 @@ private fun computeHorizontalBorders(
         }
     }
 
-    var yMaxScaled = yMax
-    var yMinScaled = yMin
+    var yMaxCorrected = yMax
+    var yMinCorrected = yMin
 
-    while (yMaxScaled - yMinScaled < 8){
-        val top = getNonMaxSuppressed(yMaxScaled + 1) ?: run { throw ImageProcessingException("Failed to detect horizontal border") }
-        val bottom = getNonMaxSuppressed(yMinScaled - 1) ?: run { throw ImageProcessingException("Failed to detect horizontal border") }
+    while (yMaxCorrected - yMinCorrected < 8){
+        val top = getNonMaxSuppressed(yMaxCorrected + 1) ?: run { throw ImageProcessingException("Failed to detect horizontal border") }
+        val bottom = getNonMaxSuppressed(yMinCorrected - 1) ?: run { throw ImageProcessingException("Failed to detect horizontal border") }
 
         if (top.toMatrix().map { it.sum() }.sum() > bottom.toMatrix().map { it.sum() }.sum()){
-            yMaxScaled += 1
+            yMaxCorrected += 1
         } else{
-            yMinScaled -= 1
+            yMinCorrected -= 1
         }
     }
 
-    return Pair(yMinScaled, yMaxScaled)
+    return Pair(yMinCorrected, yMaxCorrected)
 }
 
 fun makeBorderMat(size: Size, type: Int = CV_32FC1, borderThickness: Int = 3): Mat{
     val bordersMat = Mat.zeros(size, type)
-    for (i in 3 until bordersMat.rows()-borderThickness){
-        for (j in 3 until bordersMat.cols()-borderThickness){
+    for (i in borderThickness until bordersMat.rows()-borderThickness){
+        for (j in borderThickness until bordersMat.cols()-borderThickness){
             bordersMat[i, j] = floatArrayOf(255f)
         }
     }
