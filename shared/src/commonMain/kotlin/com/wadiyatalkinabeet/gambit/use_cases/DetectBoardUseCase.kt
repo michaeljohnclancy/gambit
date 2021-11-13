@@ -90,12 +90,6 @@ fun Flow<Mat>.detectBoardUseCase(): Flow<Resource<ImageAnalysisState>> = transfo
 
         imageAnalysisState.cornerPoints = ransacResults?.let {
             detectCorners(it, sourceMat, imageAnalysisState.scale)
-        } ?.also {
-            emit(
-                Resource.Success(
-                    imageAnalysisState
-                )
-            )
         } ?: run {
             emit(
                 Resource.Error(
@@ -105,6 +99,12 @@ fun Flow<Mat>.detectBoardUseCase(): Flow<Resource<ImageAnalysisState>> = transfo
             )
             return@transform
         }
+
+        emit(
+            Resource.Success(
+                imageAnalysisState
+            )
+        )
     } catch(e: TimeoutCancellationException) {
         emit(
             Resource.Error(
