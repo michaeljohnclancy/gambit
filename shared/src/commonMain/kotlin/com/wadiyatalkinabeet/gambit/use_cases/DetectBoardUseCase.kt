@@ -5,33 +5,59 @@ import com.wadiyatalkinabeet.gambit.domain.cv.*
 import com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2.*
 import com.wadiyatalkinabeet.gambit.domain.math.algorithms.RANSACException
 import com.wadiyatalkinabeet.gambit.domain.math.algorithms.runRANSAC
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withTimeout
+
+const val MIN_LINE_COUNT = 2
+const val MAX_LINE_COUNT = 400
+const val MIN_POST_LINE_COUNT = 2
+const val MIN_INTERSECTIONS = 4
+
+// Timeouts in milliseconds
+const val RANSAC_TIMEOUT = 10_000L
 
 fun Flow<Mat>.detectBoardUseCase(): Flow<Resource<ImageAnalysisState>> = transform { sourceMat ->
     val imageAnalysisState = ImageAnalysisState(sourceMat)
 
-    val detectedLines = detectLines(sourceMat, eliminateDiagonals = false)
-    if (detectedLines.size > 2) {
+    try {
+        val detectedLines = detectLines(sourceMat, eliminateDiagonals = false)
+        if (detectedLines.size < MIN_LINE_COUNT) {
+            emit(
+                Resource.Error(
+                    NotEnoughFeaturesException("Not enough lines found"),
+                    imageAnalysisState
+                )
+            )
+            return@transform
+        }
+        else if (detectedLines.size > MAX_LINE_COUNT) {
+            emit(
+                Resource.Error(
+                    TooManyFeaturesException("Too many lines found"),
+                    imageAnalysisState
+                )
+            )
+            return@transform
+        }
         emit(
             Resource.Loading(
                 imageAnalysisState
             )
         )
-    } else {
-        emit(
-            Resource.Error(
-                NotEnoughFeaturesException("Not enough lines found!"),
-                imageAnalysisState
+
+        var (horizontalLines, verticalLines) = clusterLines(detectedLines)
+        horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
+        verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
+        if (horizontalLines.size < MIN_POST_LINE_COUNT  || verticalLines.size < MIN_POST_LINE_COUNT) {
+            emit(
+                Resource.Error(
+                    NotEnoughFeaturesException("Not enough lines after elimination"),
+                    imageAnalysisState
+                )
             )
-        )
-        return@transform
-    }
-
-    var (horizontalLines, verticalLines) = clusterLines(detectedLines)
-
-    horizontalLines = eliminateSimilarLines(horizontalLines, verticalLines)
-    verticalLines = eliminateSimilarLines(verticalLines, horizontalLines)
-    if (horizontalLines.size > 2 && verticalLines.size > 2) {
+            return@transform
+        }
         imageAnalysisState.horizontalLines = horizontalLines
         imageAnalysisState.verticalLines = verticalLines
         emit(
@@ -39,50 +65,50 @@ fun Flow<Mat>.detectBoardUseCase(): Flow<Resource<ImageAnalysisState>> = transfo
                 imageAnalysisState
             )
         )
-    } else {
-        emit(
-            Resource.Error(
-                NotEnoughFeaturesException("Not enough lines after elimination!"),
-                imageAnalysisState
-            )
-        )
-        return@transform
-    }
 
-    val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
-    if (allIntersectionPoints.size * allIntersectionPoints[0].size >= 4) {
+        val allIntersectionPoints = findIntersectionPoints(horizontalLines, verticalLines)
+        if (allIntersectionPoints.size * allIntersectionPoints[0].size < MIN_INTERSECTIONS) {
+            emit(
+                Resource.Error(
+                    NotEnoughFeaturesException("Not enough intersection points"),
+                    imageAnalysisState
+                )
+            )
+            return@transform
+        }
         emit(
             Resource.Loading(
                 imageAnalysisState
             )
         )
-    } else {
+
+        val ransacResults = try {
+            withTimeout(RANSAC_TIMEOUT) { runRANSAC(allIntersectionPoints) }
+        } catch (e: RANSACException) {
+            null
+        }
+
+        imageAnalysisState.cornerPoints = ransacResults?.let {
+            detectCorners(it, sourceMat, imageAnalysisState.scale)
+        } ?.also {
+            emit(
+                Resource.Success(
+                    imageAnalysisState
+                )
+            )
+        } ?: run {
+            emit(
+                Resource.Error(
+                    NotEnoughFeaturesException("Detect corners failed"),
+                    imageAnalysisState
+                )
+            )
+            return@transform
+        }
+    } catch(e: TimeoutCancellationException) {
         emit(
             Resource.Error(
-                NotEnoughFeaturesException("Not enough intersection points! (< 4)"),
-                imageAnalysisState
-            )
-        )
-        return@transform
-    }
-
-    val ransacResults = try {
-        runRANSAC(allIntersectionPoints)
-    } catch (e: RANSACException) {
-        null
-    }
-
-    ransacResults?.let {
-        imageAnalysisState.cornerPoints = detectCorners(ransacResults, sourceMat, imageAnalysisState.scale)
-        emit(
-            Resource.Success(
-                imageAnalysisState
-            )
-        )
-    } ?: run {
-        emit(
-            Resource.Error(
-                NotEnoughFeaturesException("RANSAC failed!"),
+                TooManyFeaturesException("Processing took too long"),
                 imageAnalysisState
             )
         )

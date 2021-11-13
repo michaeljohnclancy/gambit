@@ -34,7 +34,7 @@ class CameraPreviewViewModel: ViewModel(){
 
     val permissionsInitiallyRequestedState = MutableStateFlow(false)
 
-    fun getImageAnalysisResult(): Flow<Resource<ImageAnalysisState>> =
+    val imageAnalysisResult: Flow<Resource<ImageAnalysisState>> =
         _imageAnalysisUseCaseState.value
             .toMatFlow(grayscale = true)
             .filterNotNull()

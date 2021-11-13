@@ -3,24 +3,23 @@ package com.wadiyatalkinabeet.gambit.android
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.camera.view.PreviewView
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -30,15 +29,16 @@ import androidx.compose.ui.unit.sp
 import com.github.skgmn.cameraxx.CameraPreview
 import com.github.skgmn.startactivityx.PermissionStatus
 import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.navigationBarsWithImePadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.wadiyatalkinabeet.gambit.CameraPreviewViewModel
 import com.wadiyatalkinabeet.gambit.Resource
+import com.wadiyatalkinabeet.gambit.domain.cv.TooManyFeaturesException
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Segment
 import kotlinx.coroutines.flow.Flow
 
 @SuppressLint("CoroutineCreationDuringComposition")
-@ExperimentalAnimationApi
 @Composable
 fun MainScreen(
     viewModel: CameraPreviewViewModel,
@@ -58,6 +58,17 @@ fun MainScreen(
 }
 
 @Composable
+private fun HeaderButton(
+    description: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    IconButton(onClick, Modifier.padding(3.dp)) {
+        Icon(icon, description, Modifier.size(32.dp), Color.White)
+    }
+}
+
+@Composable
 private fun ViewFinder(
     viewModel: CameraPreviewViewModel
 ) {
@@ -67,12 +78,12 @@ private fun ViewFinder(
     CameraLayer(viewModel = viewModel)
     ImageAnalysisOverlay(viewModel = viewModel)
 
-    // Status bar shadow
+    // Header
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(with(LocalDensity.current) {
-                (3 * LocalWindowInsets.current.systemBars.top).toDp()
+                (4 * LocalWindowInsets.current.systemBars.top).toDp()
             })
             .background(
                 brush = Brush.verticalGradient(
@@ -82,93 +93,110 @@ private fun ViewFinder(
                     ),
                 )
             )
-    )
-
-    // Back button
-    IconButton(
-        onClick = {
-            Toast.makeText(
-                context,
-                "Can't go back",
-                Toast.LENGTH_SHORT
-            ).show()
-        },
-        modifier = Modifier
-            .systemBarsPadding()
-            .padding(12.dp)
     ) {
-        Icon(
-            Icons.Filled.ArrowBack,
-            "Back",
-            tint = Color.White,
-            modifier = Modifier.size(40.dp)
-        )
+        Row (Modifier.fillMaxSize().systemBarsPadding().padding(12.dp)) {
+            HeaderButton("Back", Icons.Filled.Close) {
+                Toast.makeText(context, "Unimplemented", Toast.LENGTH_SHORT).show()
+            }
+            Spacer(Modifier.weight(1f))
+            HeaderButton("Flash", Icons.Filled.FlashOff) {
+                Toast.makeText(context, "Unimplemented", Toast.LENGTH_SHORT).show()
+            }
+            HeaderButton("Help", Icons.Filled.HelpOutline) {
+                Toast.makeText(context, "Unimplemented", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
 
 fun lerp(start: Float, end: Float, fraction: Float) = start * (1f - fraction) + end * fraction
 
 @Composable
+private fun Tooltip(
+    text: String
+) {
+    Surface(
+        Modifier.animateContentSize(),
+        color = Color.Black.copy(alpha = 0.5f),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Text(
+            text,
+            Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+            color = Color.White
+        )
+    }
+}
+
+@Composable
 private fun Reticle(
-    points: List<Point>, matSize: Size
-){
+    new_points: List<Point>?, matSize: Size
+) {
+    // Constants
+    val PULSE_TIME = 1000
+    val RETICLE_RADIUS = 15f
+    val CORNER_RADIUS = 10f
+    val LINE_WIDTH = 6f
+    val AURA_SCALE = new_points?.run { 0.5f } ?: 8f
+    val BREATH_SCALE = new_points?.run { 0f } ?: 0.15f
+
+    // Function to generate rounded rectangles paths with perspective
+    fun quadPath(points: List<Point>, scale: Float) = Path().apply {
+        val centroid = points.fold(Point(0f, 0f)) { a, b -> a + b } / 4f
+        val ps = points.map { it + (it - centroid) * scale }
+        moveTo(ps[0].x, ps[0].y)
+        lineTo(ps[1].x, ps[1].y)
+        lineTo(ps[2].x, ps[2].y)
+        lineTo(ps[3].x, ps[3].y)
+        close()
+    }
+
+    // Location of reticule corners when no real corners are available
+    val defaultPoints = listOf(
+        Point(-1f, -1f), Point(-1f, 1f),
+        Point(1f, 1f), Point(1f, -1f)
+    ).map { sign ->
+        Point(matSize.width / 2, matSize.height / 2) + sign * RETICLE_RADIUS
+    }
+
+    val points = new_points ?: defaultPoints //TODO Animate
+
+    // Animations
     val pulseAnim = rememberInfiniteTransition()
     val glowScale by pulseAnim.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, 0, LinearEasing),
-            repeatMode = RepeatMode.Reverse
+        0f, 1f,
+        infiniteRepeatable(
+            tween(PULSE_TIME , 0, LinearEasing), RepeatMode.Reverse
         )
     )
     val auraScale by pulseAnim.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, 1000, FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
+        0f, 1f,
+        infiniteRepeatable(
+            tween(PULSE_TIME, PULSE_TIME, FastOutSlowInEasing), RepeatMode.Restart
+        )
+    )
+
+    // Path styles
+    val mainStyle = Stroke(
+        width = LINE_WIDTH,
+        join = StrokeJoin.Round,
+        pathEffect = PathEffect.cornerPathEffect(CORNER_RADIUS)
+    )
+    val auraStyle = Stroke(
+        width = lerp(LINE_WIDTH, 0f, auraScale),
+        join = StrokeJoin.Round,
+        pathEffect = PathEffect.cornerPathEffect(
+            lerp(CORNER_RADIUS, CORNER_RADIUS * AURA_SCALE * 2, auraScale)
         )
     )
 
     Canvas(Modifier.fillMaxSize()) {
-        fun quadPath(points: List<Point>, r: Float, scale: Float) = Path().apply {
-            //TODO Corner radius
-            val c = points.fold(Point(0f, 0f)) { a, b -> a + b } / 4f
-            val ps = points.map {
-                it + (it - c) * scale
-            }
-            moveTo(ps[0].x, ps[0].y)
-            lineTo(ps[1].x, ps[1].y)
-            lineTo(ps[2].x, ps[2].y)
-            lineTo(ps[3].x, ps[3].y)
-            close()
-        }
-
-        val r = 60f
-        val mainPaint = Paint().apply{
-            style = PaintingStyle.Stroke
-            strokeWidth = 6f
-            color = Color.White
-            alpha = 0.5f
-        }
-        val auraPaint = Paint().apply{
-            style = PaintingStyle.Stroke
-            strokeWidth = lerp(6f, 0f, auraScale)
-            color = Color.White
-            alpha = lerp(0f, 0.5f, glowScale)
-        }
-
-        val mainSquare = quadPath(points, r, 0f)
-        val auraSquare = quadPath(
-            points,
-            lerp(r, r * 1.5f, auraScale),
-            lerp(0f, 0.2f, auraScale),
-        )
+        val mainScale = lerp(0f, BREATH_SCALE, glowScale)
+        val mainSquare = quadPath(points, mainScale)
+        val auraSquare = quadPath(points, lerp(mainScale, AURA_SCALE, auraScale))
         cvToScreenCoords(matSize) {
-            drawIntoCanvas {
-                it.drawPath(path = mainSquare, paint = mainPaint)
-                it.drawPath(path = auraSquare, paint = auraPaint)
-            }
+            drawPath(mainSquare, Color.White, 0.8f, mainStyle)
+            drawPath(auraSquare, Color.White, lerp(0f, 0.5f, glowScale), auraStyle)
         }
     }
 }
@@ -176,7 +204,7 @@ private fun Reticle(
 @Composable
 private fun CameraLayer(
     viewModel: CameraPreviewViewModel
-){
+) {
     val preview by remember { mutableStateOf(viewModel.preview) }
     val imageAnalysis by viewModel.imageAnalysisUseCaseState.collectAsState()
 
@@ -193,69 +221,69 @@ fun ImageAnalysisOverlay(
     viewModel: CameraPreviewViewModel
 ) {
     val imageAnalysisResult by viewModel
-        .getImageAnalysisResult().collectAsState(initial = null)
+        .imageAnalysisResult.collectAsState(initial = null)
 
     val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
 
-    val lineColor = Color.White.copy(alpha=0.7f)
+    val lineColor = Color.White.copy(alpha=0.1f)
 
     val matSize = Size(
         imageAnalysisResolution.width.toFloat(),
         imageAnalysisResolution.height.toFloat()
     )
 
-    // Location of reticule corners when no real corners are available
-    val defaultPoints = listOf(
-            Point(-1f, -1f), Point(-1f, 1f),
-            Point(1f, 1f), Point(1f, -1f)
-        ).map { sign ->
-            Point(matSize.width / 2, matSize.height / 2) + sign * (matSize.height / 5f)
-        }
-
-    var points by remember { mutableStateOf (defaultPoints) }
+    var points by remember { mutableStateOf<List<Point>?> (null) }
+    val defaultHint = "Point your camera at a chessboard"
+    var hintText by remember { mutableStateOf(defaultHint) }
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         imageAnalysisResult?.let { result ->
-            when (result){
-                is Resource.Loading -> {
-                    cvToScreenCoords(
-                        matSize
-                    ) {
-                        result.data?.horizontalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-                        result.data?.verticalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-//                        it.data?.cornerPoints
-//                            ?.run { drawPointOverlay(this) }
-                        result.data?.cornerPoints?.let{ points = it }
+            // Update `points` if new corner points are available
+            result.data?.cornerPoints
+                ?.let { points = it }
+                ?: run {
+                    // Keep old corners, unless an error occurred
+                    if (result is Resource.Error) {
+                        points = null
                     }
+                }
 
+            // Update hint
+            hintText = when(result) {
+                is Resource.Error -> when(result.throwable) {
+                    is TooManyFeaturesException -> "Avoid background clutter"
+                    else -> defaultHint
                 }
-                is Resource.Success -> {
-                    cvToScreenCoords(
-                        matSize
-                    ) {
-                        result.data?.horizontalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-                        result.data?.verticalLines
-                            ?.map { line -> line.toSegment() }
-                            ?.let { lines -> drawSegments(lines, lineColor, 2f) }
-//                        it.data?.cornerPoints
+                is Resource.Loading -> hintText
+                is Resource.Success -> "Scanning board..."
+            }
+
+            // Draw debug lines/points
+            cvToScreenCoords(
+                matSize
+            ) {
+                result.data?.horizontalLines
+                    ?.map { line -> line.toSegment() }
+                    ?.let { lines -> drawSegments(lines, lineColor, 2f) }
+                result.data?.verticalLines
+                    ?.map { line -> line.toSegment() }
+                    ?.let { lines -> drawSegments(lines, lineColor, 2f) }
+//                        result.data?.cornerPoints
 //                            ?.run { drawPointOverlay(this) }
-                        result.data?.cornerPoints?.let{ points = it }
-                    }
-                }
-                is Resource.Error -> {
-                    points = defaultPoints
-                }
             }
         }
     }
 
     Reticle(points, matSize)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .navigationBarsWithImePadding()
+            .padding(bottom = 24.dp),
+        Alignment.BottomCenter
+    ) {
+        Tooltip(hintText)
+    }
 }
 
 fun DrawScope.cvToScreenCoords(
@@ -302,8 +330,8 @@ fun DrawScope.drawPointOverlay(cornerPoints: List<Point>) =
             drawPoints(
                 it,
                 PointMode.Points,
-                Color(0f, 0f, 0f, 0.5f),
-                6f
+                Color(1f, 0f, 0f, 1f),
+                12f
             )
         }
 

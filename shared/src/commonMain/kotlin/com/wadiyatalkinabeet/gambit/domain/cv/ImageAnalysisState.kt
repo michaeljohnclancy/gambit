@@ -15,4 +15,5 @@ data class ImageAnalysisState(
 }
 
 class NotEnoughFeaturesException(message: String) : Exception(message)
+class TooManyFeaturesException(message: String) : Exception(message)
 
