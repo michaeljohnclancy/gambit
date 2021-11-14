@@ -48,14 +48,15 @@ fun detectCorners(
     val scaledXMin = ransacResults.scale.first * xMin
     val scaledXMax = ransacResults.scale.first * xMax
 
+//TODO It could be reasonable to add the below back in once everything works
 
-    for (i in 0 until warpedBordersMat.rows()) {
-        for (j in 0 until warpedBordersMat.cols()) {
-            if (i < scaledXMin || i > scaledXMax) {
-                warpedBordersMat[i, j] = floatArrayOf(0f)
-            }
-        }
-    }
+//    for (i in 0 until warpedBordersMat.rows()) {
+//        for (j in 0 until warpedBordersMat.cols()) {
+//            if (i < scaledXMin || i > scaledXMax) {
+//                warpedBordersMat[i, j] = floatArrayOf(0f)
+//            }
+//        }
+//    }
 
     val (yMin, yMax) = try {
         computeHorizontalBorders(
@@ -129,13 +130,13 @@ private fun computeVerticalBorders(
         }
     }
 
-    fun getSumAtCol(y: Int): Float {
+    fun getSumAtCol(y: Int): Int {
         val yScaled = y * scale.second
 
-        var sum = 0f
+        var sum = 0
         for (i in 0 until resultMat.rows()){
             for (j in (yScaled-2 until yScaled+3) ){
-                sum += resultMat[i,j][0]
+                sum += if (resultMat[i,j][0] == 0f) { 0 } else { 1 }
             }
         }
         return sum
@@ -145,10 +146,10 @@ private fun computeVerticalBorders(
     var xMinCorrected = xMin
 
     while (xMaxCorrected - xMinCorrected < 8 && xMinCorrected > 1 && xMaxCorrected < 17){
-        val top = getSumAtCol(xMaxCorrected + 1)
-        val bottom = getSumAtCol(xMinCorrected - 1)
+        val right = getSumAtCol(xMaxCorrected + 1)
+        val left = getSumAtCol(xMinCorrected - 1)
 
-        if (top > bottom){
+        if (right > left){
             xMaxCorrected += 1
         } else{
             xMinCorrected -= 1
@@ -187,14 +188,13 @@ private fun computeHorizontalBorders(
         }
     }
 
+    fun getSumAtRow(y: Int): Int {
+        val yScaled = y * scale.first
 
-    fun getSumAtRow(x: Int): Float {
-        val xScaled = x * scale.first
-
-        var sum = 0f
-        for (i in (xScaled-2 until xScaled+3)){
+        var sum = 0
+        for (i in (yScaled-2 until yScaled+3)){
             for (j in 0 until resultMat.cols()){
-                sum += resultMat[i,j][0]
+                sum += if (resultMat[i,j][0] == 0f) { 0 } else { 1 }
             }
         }
         return sum
