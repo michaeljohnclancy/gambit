@@ -136,11 +136,11 @@ private fun quantizePoints(warpedScaledPoints: Array<Array<Point?>>, intersectio
     var yMax = rowYs.maxOrNull() ?: run { throw RANSACException("Not enough information") }
 
 
-    while (xMax - xMin > 9){
+    while (xMax - xMin > 8){
         xMax -= 1
         xMin += 1
     }
-    while (yMax - yMin > 9){
+    while (yMax - yMin > 8){
         yMax -= 1
         yMin += 1
     }

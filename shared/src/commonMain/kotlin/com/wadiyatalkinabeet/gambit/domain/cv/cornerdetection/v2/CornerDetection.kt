@@ -129,12 +129,12 @@ private fun computeVerticalBorders(
         }
     }
 
-    fun getNonMaxSuppressed(y: Int): Mat? {
-        val yScaled = y * scale.second
+    fun getNonMaxSuppressed(x: Int): Mat? {
+        val xScaled = x * scale.second
 
         val colCounts = mutableMapOf<Int, Float>()
         for (i in 0 until resultMat.rows()){
-            for (j in (yScaled-2 until yScaled+3) ){
+            for (j in (xScaled-2 until xScaled+3) ){
                 colCounts[j] = (colCounts[j] ?: 0f) + resultMat[i,j][0]
             }
         }
@@ -190,11 +190,11 @@ private fun computeHorizontalBorders(
     }
 
 
-    fun getNonMaxSuppressed(x: Int): Mat? {
-        val xScaled = x * scale.first
+    fun getNonMaxSuppressed(y: Int): Mat? {
+        val yScaled = y * scale.first
 
         val rowCounts = mutableMapOf<Int, Float>()
-        for (i in (xScaled-2 until xScaled+3)){
+        for (i in (yScaled-2 until yScaled+3)){
             for (j in 0 until resultMat.cols()){
                 rowCounts[i] = (rowCounts[i] ?: 0f) + resultMat[i,j][0]
             }
