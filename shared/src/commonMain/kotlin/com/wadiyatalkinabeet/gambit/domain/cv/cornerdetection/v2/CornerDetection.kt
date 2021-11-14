@@ -130,12 +130,12 @@ private fun computeVerticalBorders(
         }
     }
 
-    fun getSumAtCol(y: Int): Int {
-        val yScaled = y * scale.second
+    fun getSumAtCol(x: Int): Int {
+        val xScaled = x * scale.first
 
         var sum = 0
         for (i in 0 until resultMat.rows()){
-            for (j in (yScaled-2 until yScaled+3) ){
+            for (j in (xScaled-2 until xScaled+3) ){
                 sum += if (resultMat[i,j][0] == 0f) { 0 } else { 1 }
             }
         }
@@ -145,7 +145,17 @@ private fun computeVerticalBorders(
     var xMaxCorrected = xMax
     var xMinCorrected = xMin
 
-    while (xMaxCorrected - xMinCorrected < 8 && xMinCorrected > 1 && xMaxCorrected < 17){
+    val xLimit = resultMat.width() / scale.first - 2
+    while (xMaxCorrected - xMinCorrected < 8) {
+        if (xMaxCorrected > xLimit) {
+            xMinCorrected -= 1
+            continue
+        }
+        if (xMinCorrected < 2) {
+            xMaxCorrected += 1
+            continue
+        }
+
         val right = getSumAtCol(xMaxCorrected + 1)
         val left = getSumAtCol(xMinCorrected - 1)
 
@@ -189,7 +199,7 @@ private fun computeHorizontalBorders(
     }
 
     fun getSumAtRow(y: Int): Int {
-        val yScaled = y * scale.first
+        val yScaled = y * scale.second
 
         var sum = 0
         for (i in (yScaled-2 until yScaled+3)){
@@ -203,7 +213,16 @@ private fun computeHorizontalBorders(
     var yMaxCorrected = yMax
     var yMinCorrected = yMin
 
-    while (yMaxCorrected - yMinCorrected < 8 && yMinCorrected > 1 && yMaxCorrected < 17){
+    val yLimit = resultMat.height() / scale.second - 2
+    while (yMaxCorrected - yMinCorrected < 8) {
+        if (yMaxCorrected > yLimit) {
+            yMinCorrected -= 1
+            continue
+        }
+        if (yMinCorrected < 2) {
+            yMaxCorrected += 1
+            continue
+        }
         val top = getSumAtRow(yMaxCorrected + 1)
         val bottom = getSumAtRow(yMinCorrected - 1)
 
