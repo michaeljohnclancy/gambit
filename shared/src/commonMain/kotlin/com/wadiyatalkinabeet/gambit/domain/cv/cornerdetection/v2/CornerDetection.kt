@@ -129,28 +129,26 @@ private fun computeVerticalBorders(
         }
     }
 
-    fun getNonMaxSuppressed(y: Int): Mat? {
+    fun getSumAtCol(y: Int): Float {
         val yScaled = y * scale.second
 
-        val colCounts = mutableMapOf<Int, Float>()
+        var sum = 0f
         for (i in 0 until resultMat.rows()){
             for (j in (yScaled-2 until yScaled+3) ){
-                colCounts[j] = (colCounts[j] ?: 0f) + resultMat[i,j][0]
+                sum += resultMat[i,j][0]
             }
         }
-        return colCounts.filterKeys { 0 < it && it < resultMat.cols() }.maxByOrNull { it.value }?.let {
-            resultMat.col(it.key)
-        }
+        return sum
     }
 
     var xMaxCorrected = xMax
     var xMinCorrected = xMin
 
-    while (xMaxCorrected - xMinCorrected < 8){
-        val top = getNonMaxSuppressed(xMaxCorrected + 1) ?: run { throw ImageProcessingException("Failed to detect vertical borders")}
-        val bottom = getNonMaxSuppressed(xMinCorrected - 1) ?: run { throw ImageProcessingException("Failed to detect vertical borders")}
+    while (xMaxCorrected - xMinCorrected < 8 && xMinCorrected > 1 && xMaxCorrected < 17){
+        val top = getSumAtCol(xMaxCorrected + 1)
+        val bottom = getSumAtCol(xMinCorrected - 1)
 
-        if (top.toMatrix().map { it.sum() }.sum() > bottom.toMatrix().map { it.sum() }.sum()){
+        if (top > bottom){
             xMaxCorrected += 1
         } else{
             xMinCorrected -= 1
@@ -190,28 +188,26 @@ private fun computeHorizontalBorders(
     }
 
 
-    fun getNonMaxSuppressed(x: Int): Mat? {
+    fun getSumAtRow(x: Int): Float {
         val xScaled = x * scale.first
 
-        val rowCounts = mutableMapOf<Int, Float>()
+        var sum = 0f
         for (i in (xScaled-2 until xScaled+3)){
             for (j in 0 until resultMat.cols()){
-                rowCounts[i] = (rowCounts[i] ?: 0f) + resultMat[i,j][0]
+                sum += resultMat[i,j][0]
             }
         }
-        return rowCounts.filterKeys { 0 < it && it < resultMat.rows() }.maxByOrNull { it.value }?.let {
-            resultMat.row(it.key)
-        }
+        return sum
     }
 
     var yMaxCorrected = yMax
     var yMinCorrected = yMin
 
-    while (yMaxCorrected - yMinCorrected < 8){
-        val top = getNonMaxSuppressed(yMaxCorrected + 1) ?: run { throw ImageProcessingException("Failed to detect horizontal border") }
-        val bottom = getNonMaxSuppressed(yMinCorrected - 1) ?: run { throw ImageProcessingException("Failed to detect horizontal border") }
+    while (yMaxCorrected - yMinCorrected < 8 && yMinCorrected > 1 && yMaxCorrected < 17){
+        val top = getSumAtRow(yMaxCorrected + 1)
+        val bottom = getSumAtRow(yMinCorrected - 1)
 
-        if (top.toMatrix().map { it.sum() }.sum() > bottom.toMatrix().map { it.sum() }.sum()){
+        if (top > bottom){
             yMaxCorrected += 1
         } else{
             yMinCorrected -= 1
