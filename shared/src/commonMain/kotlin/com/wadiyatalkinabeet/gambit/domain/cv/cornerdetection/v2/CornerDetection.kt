@@ -36,36 +36,16 @@ fun detectCorners(
         warpedBordersMat, transformationMat, ransacResults.warpedImageSize
     )
 
-    val (xMin, xMax) = try {
-        computeVerticalBorders(
+    val (xLims, yLims) = try {
+        expandLimits(
             warpedGrayscaleMat, warpedBordersMat, ransacResults.scale,
-            ransacResults.xMin, ransacResults.xMax
+            ransacResults.xMin, ransacResults.xMax, ransacResults.yMin, ransacResults.yMax
         )
     } catch (e: ImageProcessingException) {
         return null
     }
-
-    val scaledXMin = ransacResults.scale.first * xMin
-    val scaledXMax = ransacResults.scale.first * xMax
-
-//TODO It could be reasonable to add the below back in once everything works
-
-//    for (i in 0 until warpedBordersMat.rows()) {
-//        for (j in 0 until warpedBordersMat.cols()) {
-//            if (i < scaledXMin || i > scaledXMax) {
-//                warpedBordersMat[i, j] = floatArrayOf(0f)
-//            }
-//        }
-//    }
-
-    val (yMin, yMax) = try {
-        computeHorizontalBorders(
-            warpedGrayscaleMat, warpedBordersMat, ransacResults.scale,
-            ransacResults.yMin, ransacResults.yMax
-        )
-    } catch (e: ImageProcessingException) {
-        return null
-    }
+    val (xMin, xMax) = xLims
+    val (yMin, yMax) = yLims
 
     val inverseWarpMatrix = transformationMat.toMatrix().inverse().toMat()
 
@@ -101,139 +81,63 @@ fun detectCorners(
     }
 }
 
-private fun computeVerticalBorders(
-    warpedGrayscaleMat: Mat, warpedBorderMat: Mat,
-    scale: Pair<Int, Int>, xMin: Int, xMax: Int
-): Pair<Int, Int>{
-    val resultMat = Mat()
-    sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 1, 0, 3)
-    convertScaleAbs(resultMat, resultMat)
-
-//    resultMat.convertTo(resultMat, CV_32FC1)
-//    for (i in 0 until resultMat.rows()){
-//        for (j in 0 until resultMat.cols()){
-//            if (warpedBorderMat[i, j][0] != 255f){
-//                resultMat[i, j] = floatArrayOf(0f)
-//            }
-//        }
-//    }
-
-    resultMat.convertTo(resultMat, CV_8UC1)
-    canny(resultMat, resultMat, 120.0, 300.0, 3)
-    resultMat.convertTo(resultMat, CV_32FC1)
-
-    for (i in 0 until resultMat.rows()){
-        for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255f){
-                resultMat[i, j] = floatArrayOf(0f)
-            }
-        }
-    }
-
-    fun getSumAtCol(x: Int): Int {
-        val xScaled = x * scale.first
-
+fun Mat.expandLimits(verticals: Boolean, scale: Int, min: Int, max: Int): Pair<Int, Int> {
+    val cachedSums = mutableMapOf<Int, Int>()
+    fun calcSum(i: Int): Int {
+        val x = i * scale
         var sum = 0
-        for (i in 0 until resultMat.rows()){
-            for (j in (xScaled-2 until xScaled+3) ){
-                sum += if (resultMat[i,j][0] == 0f) { 0 } else { 1 }
+        for (i in if (verticals) { 0 until rows() } else { x-2 until x+3 } ){
+            for (j in if (verticals) { x-2 until x+3 } else { 0 until cols()} ){
+                sum += if (this[i,j][0] == 0f) { 0 } else { 1 }
             }
         }
         return sum
     }
+    fun getSum(i: Int) = cachedSums.getOrPut(i, { calcSum(i) })
 
-    var xMaxCorrected = xMax
-    var xMinCorrected = xMin
-
-    val xLimit = resultMat.width() / scale.first - 2
-    while (xMaxCorrected - xMinCorrected < 8) {
-        if (xMaxCorrected > xLimit) {
-            xMinCorrected -= 1
+    var newMin = min
+    var newMax = max
+    val lastIndex = if (verticals) { width() } else { height() } / scale - 2
+    while (newMax - newMin < 8) {
+        if (newMax > lastIndex) {
+            newMin -= 1
             continue
         }
-        if (xMinCorrected < 2) {
-            xMaxCorrected += 1
+        if (newMin < 2) {
+            newMax += 1
             continue
         }
-
-        val right = getSumAtCol(xMaxCorrected + 1)
-        val left = getSumAtCol(xMinCorrected - 1)
-
-        if (right > left){
-            xMaxCorrected += 1
-        } else{
-            xMinCorrected -= 1
+        val down = getSum(newMin - 1)
+        val up = getSum(newMax + 1)
+        if (down > up) {
+            newMin -= 1
+        } else {
+            newMax += 1
         }
     }
-
-    return Pair(xMinCorrected, xMaxCorrected)
+    return Pair(newMin, newMax)
 }
 
-private fun computeHorizontalBorders(
+private fun expandLimits(
     warpedGrayscaleMat: Mat, warpedBorderMat: Mat,
-    scale: Pair<Int, Int>, yMin: Int, yMax: Int
-): Pair<Int, Int>{
-    val resultMat = Mat()
-    sobel(warpedGrayscaleMat, resultMat, CV_32FC1, 0, 1, 3)
-    convertScaleAbs(resultMat, resultMat)
-
-//    resultMat.convertTo(resultMat, CV_32FC1)
-//    for (i in 0 until resultMat.rows()){
-//        for (j in 0 until resultMat.cols()){
-//            if (warpedBorderMat[i, j][0] != 255f){
-//                resultMat[i, j] = floatArrayOf(0f)
-//            }
-//        }
-//    }
-
-    resultMat.convertTo(resultMat, CV_8UC1)
-    canny(resultMat, resultMat, 120.0, 300.0, 3)
-    resultMat.convertTo(resultMat, CV_32FC1)
-
-    for (i in 0 until resultMat.rows()){
-        for (j in 0 until resultMat.cols()){
-            if (warpedBorderMat[i, j][0] != 255f){
-                resultMat[i, j] = floatArrayOf(0f)
-            }
-        }
+    scale: Pair<Int, Int>,
+    xMin: Int, xMax: Int, yMin: Int, yMax: Int
+): Pair<Pair<Int, Int>, Pair<Int, Int>> {
+    val horizontalsMat = Mat()
+    val verticalsMat = Mat()
+    sobel(warpedGrayscaleMat, horizontalsMat, CV_32FC1, 0, 1, 3)
+    sobel(warpedGrayscaleMat, verticalsMat, CV_32FC1, 1, 0, 3)
+    listOf(horizontalsMat, verticalsMat).forEach { mat ->
+        convertScaleAbs(mat, mat)
+        mat.convertTo(mat, CV_8UC1)
+        canny(mat, mat, 120.0, 300.0, 3)
+        mat.convertTo(mat, CV_32FC1)
+        mat.applyMask(warpedBorderMat)
     }
+    val (xMinNew, xMaxNew) = verticalsMat.expandLimits(true, scale.first, xMin, xMax)
+    val (yMinNew, yMaxNew) = horizontalsMat.expandLimits(false, scale.second, yMin, yMax)
 
-    fun getSumAtRow(y: Int): Int {
-        val yScaled = y * scale.second
-
-        var sum = 0
-        for (i in (yScaled-2 until yScaled+3)){
-            for (j in 0 until resultMat.cols()){
-                sum += if (resultMat[i,j][0] == 0f) { 0 } else { 1 }
-            }
-        }
-        return sum
-    }
-
-    var yMaxCorrected = yMax
-    var yMinCorrected = yMin
-
-    val yLimit = resultMat.height() / scale.second - 2
-    while (yMaxCorrected - yMinCorrected < 8) {
-        if (yMaxCorrected > yLimit) {
-            yMinCorrected -= 1
-            continue
-        }
-        if (yMinCorrected < 2) {
-            yMaxCorrected += 1
-            continue
-        }
-        val top = getSumAtRow(yMaxCorrected + 1)
-        val bottom = getSumAtRow(yMinCorrected - 1)
-
-        if (top > bottom){
-            yMaxCorrected += 1
-        } else{
-            yMinCorrected -= 1
-        }
-    }
-
-    return Pair(yMinCorrected, yMaxCorrected)
+    return Pair(Pair(xMinNew, xMaxNew), Pair(yMinNew, yMaxNew))
 }
 
 fun makeBorderMat(size: Size, type: Int = CV_32FC1, borderThickness: Int = 3): Mat{
