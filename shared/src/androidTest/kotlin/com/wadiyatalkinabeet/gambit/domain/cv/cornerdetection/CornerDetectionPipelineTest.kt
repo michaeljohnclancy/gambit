@@ -1,7 +1,8 @@
-package com.wadiyatalkinabeet.gambit.use_cases
+package com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection
 
 import com.wadiyatalkinabeet.gambit.Resource
 import com.wadiyatalkinabeet.gambit.domain.cv.Mat
+import com.wadiyatalkinabeet.gambit.domain.cv.cornerdetection.v2.detectBoard
 import com.wadiyatalkinabeet.gambit.domain.cv.imread
 import com.wadiyatalkinabeet.gambit.domain.cv.initOpenCV
 import com.wadiyatalkinabeet.gambit.domain.math.datastructures.Point
@@ -31,13 +32,13 @@ data class Corners(
 @Serializable
 data class Metadata(val corners: Corners)
 
-class DetectBoardUseCaseTest{
+class CornerDetectionPipelineTest{
 
     init {
         initOpenCV()
     }
 
-    private val testIds = 1..10
+    private val testIds = 1..100
 
     private fun assertApproxEquals(expected: List<Point>, actual: List<Point>) {
         val distances = expected.indices.map { Float.MAX_VALUE }.toMutableList()
@@ -64,7 +65,7 @@ class DetectBoardUseCaseTest{
                 runBlocking {
                     val expectedCorners = loadExpectedCorners(listOf(id))[0]
                     val actualCorners = fakeMatFlow(listOf(id))
-                        .detectBoardUseCase()
+                        .detectBoard()
                         .filter { it is Resource.Success }
                         .first()
                         .data!!

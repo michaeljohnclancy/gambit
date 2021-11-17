@@ -94,7 +94,11 @@ private fun ViewFinder(
                 )
             )
     ) {
-        Row (Modifier.fillMaxSize().systemBarsPadding().padding(12.dp)) {
+        Row (
+            Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(12.dp)) {
             HeaderButton("Back", Icons.Filled.Close) {
                 Toast.makeText(context, "Unimplemented", Toast.LENGTH_SHORT).show()
             }
@@ -205,14 +209,15 @@ private fun Reticle(
 private fun CameraLayer(
     viewModel: CameraPreviewViewModel
 ) {
-    val preview by remember { mutableStateOf(viewModel.preview) }
-    val imageAnalysis by viewModel.imageAnalysisUseCaseState.collectAsState()
+    val imageAnalysisPipeline by viewModel.imageAnalysisPipeline.collectAsState()
+    val preview = imageAnalysisPipeline.preview
+    val imageAnalyzer = imageAnalysisPipeline.imageAnalyzer
 
     CameraPreview(
         modifier = Modifier.fillMaxSize(),
         preview = preview,
         scaleType = PreviewView.ScaleType.FILL_CENTER,
-        imageAnalysis = imageAnalysis
+        imageAnalysis = imageAnalyzer
     )
 }
 
@@ -220,10 +225,11 @@ private fun CameraLayer(
 fun ImageAnalysisOverlay(
     viewModel: CameraPreviewViewModel
 ) {
-    val imageAnalysisResult by viewModel
-        .imageAnalysisResult.collectAsState(initial = null)
+    val imageAnalysisResult by viewModel.imageAnalysisPipeline.value
+        .resultFlow.collectAsState(initial = null)
 
-    val imageAnalysisResolution by viewModel.imageAnalysisResolution.collectAsState()
+    val imageAnalysisResolution by viewModel.imageAnalysisPipeline.value
+        .imageAnalysisResolution.collectAsState()
 
     val lineColor = Color.White.copy(alpha=0.1f)
 
